@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Zoning Decisions Compound Over Time — The Citizen</title>
+<meta name="description" content="Interactive visuals showing how incremental rezoning decisions transform communities over time. Land use diagrams and tax base impact data.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --poppy: #D93833;
+    --indigo: #33425C;
+    --jet: #373435;
+    --white: #FEFEFE;
+    --gray: #C3BFC2;
+    --dun: #D9C7AA;
+    --forest: #548C2F;
+    --dark-green: #124912;
+    --teal: #2E7D8C;
+    --brown: #7A6B5D;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--white);
+    color: var(--jet);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--jet);
+    margin-bottom: 8px;
+  }
+  .header-brand {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--poppy);
+  }
+  .header-sep {
+    width: 1px;
+    height: 14px;
+    background: var(--gray);
+  }
+  .header-sub {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #999;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin: 20px 0 32px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 8px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    background: transparent;
+    color: var(--jet);
+    border: 1px solid var(--gray);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { background: #f5f4f3; }
+  .tab-btn.active {
+    font-weight: 600;
+    background: var(--indigo);
+    color: var(--white);
+    border-color: var(--indigo);
+  }
+
+  /* Section headers */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .section-bar {
+    width: 4px;
+    height: 28px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .section-bar.poppy { background: var(--poppy); }
+  .section-bar.indigo { background: var(--indigo); }
+  .section-title {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--jet);
+  }
+  .section-desc {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 24px;
+    line-height: 1.5;
+    max-width: 640px;
+  }
+
+  /* Land Use Diagram */
+  #diagram-section { margin-bottom: 48px; }
+
+  .diagram-wrapper {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 24px;
+    align-items: stretch;
+  }
+  @media (max-width: 700px) {
+    .diagram-wrapper {
+      flex-direction: column;
+      gap: 24px;
+    }
+    .arrow-col { transform: rotate(90deg); }
+  }
+
+  .grid-col { flex: 1; }
+  .grid-label {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--jet);
+    margin-bottom: 2px;
+  }
+  .grid-sublabel {
+    font-size: 13px;
+    color: #777;
+    letter-spacing: 0.02em;
+    margin-bottom: 12px;
+  }
+  .land-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    gap: 2px;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--gray);
+  }
+  .land-cell {
+    transition: opacity 0.2s;
+    cursor: default;
+    position: relative;
+  }
+  .land-cell:hover { opacity: 0.75; }
+
+  /* Tooltip */
+  .land-cell .tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--jet);
+    color: var(--white);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+  }
+  .land-cell:hover .tooltip { display: block; }
+
+  .arrow-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .arrow-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .arrow-label {
+    font-size: 11px;
+    color: var(--poppy);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .arrow-sub {
+    font-size: 10px;
+    color: #999;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 20px;
+    background: #f8f7f6;
+    border-radius: 6px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .legend-label {
+    font-size: 12px;
+    color: var(--jet);
+  }
+
+  /* Tax Table */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #e2e0de;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 720px;
+  }
+  thead tr { background: var(--indigo); }
+  th {
+    padding: 12px 14px;
+    color: var(--white);
+    font-weight: 600;
+    text-align: right;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    border-bottom: 2px solid var(--poppy);
+  }
+  th:first-child { text-align: left; }
+  td {
+    padding: 11px 14px;
+    border-bottom: 1px solid #eee;
+    text-align: right;
+  }
+  td:first-child {
+    text-align: left;
+    font-weight: 700;
+    color: var(--jet);
+  }
+  tbody tr { transition: background-color 0.15s; }
+  tbody tr:nth-child(even) { background: #f9f8f7; }
+  tbody tr:hover { background: #f0eeeb !important; }
+
+  .col-res { color: var(--forest); font-weight: 500; }
+  .col-com { color: var(--poppy); font-weight: 500; }
+  .col-mix { color: var(--indigo); font-weight: 500; }
+  .col-ind { color: var(--brown); }
+  .col-vac { color: #999; }
+  .col-val { font-weight: 600; color: var(--jet); }
+  .col-acre { font-weight: 500; color: var(--indigo); }
+
+  .bar-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .bar-fill {
+    height: 6px;
+    background: var(--poppy);
+    border-radius: 3px;
+  }
+  .bar-val {
+    font-weight: 600;
+    color: var(--jet);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  /* Callout */
+  .callout {
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: #FFF5F5;
+    border-left: 4px solid var(--poppy);
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--jet);
+  }
+  .callout strong.accent { color: var(--poppy); }
+
+  /* Source */
+  .source-line {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+    font-size: 11px;
+    color: #aaa;
+    line-height: 1.5;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in {
+    animation: fadeUp 0.5s ease-out forwards;
+    opacity: 0;
+  }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+
+  /* Back to article link */
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--poppy);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  .back-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header animate-in">
+    <div class="header-brand">THE CITIZEN</div>
+    <div class="header-sep"></div>
+    <div class="header-sub">Interactive Visuals</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs animate-in delay-1">
+    <button class="tab-btn active" onclick="showTab('both')">All Visuals</button>
+    <button class="tab-btn" onclick="showTab('diagram')">Land Use Diagram</button>
+    <button class="tab-btn" onclick="showTab('table')">Tax Base Table</button>
+  </div>
+
+  <!-- ======================== DIAGRAM ======================== -->
+  <div id="diagram-section" class="animate-in delay-2">
+    <div class="section-header">
+      <div class="section-bar poppy"></div>
+      <h2 class="section-title">Land Use: Before &amp; After Rezoning</h2>
+    </div>
+    <p class="section-desc">
+      A hypothetical 160-acre section in a growing Parker County community. Each square represents approximately 2.5 acres. Over 15 years of incremental zoning changes, the land use profile shifts dramatically — often without a single comprehensive plan vote.
+    </p>
+
+    <div class="diagram-wrapper">
+      <!-- Before -->
+      <div class="grid-col">
+        <div class="grid-label">2010</div>
+        <div class="grid-sublabel">Original zoning — mostly residential + vacant</div>
+        <div class="land-grid" id="grid-before"></div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="arrow-col">
+        <div class="arrow-inner">
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <path d="M8 20 L28 20 L22 14 M28 20 L22 26" fill="none" stroke="#D93833" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="arrow-label">15 YEARS</span>
+          <span class="arrow-sub">23 rezoning votes</span>
+        </div>
+      </div>
+
+      <!-- After -->
+      <div class="grid-col">
+        <div class="grid-label">2025</div>
+        <div class="grid-sublabel">After incremental rezoning decisions</div>
+        <div class="land-grid" id="grid-after"></div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <!-- ======================== TABLE ======================== -->
+  <div id="table-section" class="animate-in delay-3">
+    <div class="section-header">
+      <div class="section-bar indigo"></div>
+      <h2 class="section-title">Tax Base Impact Over Time</h2>
+    </div>
+    <p class="section-desc">
+      How shifting land use percentages compound into dramatically different fiscal outcomes. Based on a hypothetical 160-acre area at a blended tax rate of $0.50 per $100 assessed value.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Residential</th>
+            <th>Commercial</th>
+            <th>Mixed-Use</th>
+            <th>Industrial</th>
+            <th>Vacant</th>
+            <th>Assessed Value</th>
+            <th>Annual Tax Revenue</th>
+            <th>Revenue / Acre</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <strong class="accent">Key takeaway:</strong> Over 15 years, tax revenue per acre increased <strong>348%</strong> — from $1,319 to $5,913. But the residential share dropped from 62% to 30%, meaning original homeowners bear proportionally less of the tax burden while receiving more services funded by commercial growth. The question is whether those services match what residents actually need.
+    </div>
+  </div>
+
+  <!-- Source -->
+  <div class="source-line">
+    <em>Hypothetical scenario for illustrative purposes. Based on composite data from Texas Comptroller property tax records, Parker County Appraisal District valuations, and municipal budget documents. Actual results vary by jurisdiction, tax rate, and market conditions.</em>
+  </div>
+
+  <a href="https://thecitizen.substack.com" class="back-link">← Read the full article on The Citizen</a>
+
+  <div style="margin-top:24px;padding-top:12px;border-top:1px solid #eee;font-size:10px;color:#bbb;line-height:1.5;">
+    © 2026 The Citizen. Licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/" style="color:#999;" target="_blank" rel="noopener">CC BY-NC 4.0</a>. You may share with attribution for non-commercial purposes.
+  </div>
+
+</div>
+
+<script>
+// Land use types
+const TYPES = {
+  residential:  { color: '#548C2F', label: 'Single-Family Residential' },
+  commercial:   { color: '#D93833', label: 'Commercial / Retail' },
+  mixed:        { color: '#33425C', label: 'Mixed-Use' },
+  industrial:   { color: '#7A6B5D', label: 'Light Industrial' },
+  civic:        { color: '#D9C7AA', label: 'Civic / Institutional' },
+  vacant:       { color: '#C3BFC2', label: 'Vacant / Undeveloped' },
+  apartments:   { color: '#2E7D8C', label: 'Multi-Family Residential' },
+};
+
+// Grid data
+const BEFORE = [
+  ['vacant','vacant','vacant','residential','residential','residential','residential','residential'],
+  ['vacant','vacant','vacant','residential','residential','residential','residential','residential'],
+  ['vacant','vacant','civic','civic','residential','residential','residential','residential'],
+  ['vacant','vacant','civic','civic','residential','residential','residential','residential'],
+  ['vacant','vacant','vacant','vacant','residential','residential','residential','residential'],
+  ['commercial','commercial','vacant','vacant','residential','residential','residential','residential'],
+  ['commercial','commercial','vacant','vacant','residential','residential','residential','residential'],
+  ['commercial','commercial','industrial','industrial','industrial','residential','residential','residential'],
+];
+
+const AFTER = [
+  ['commercial','commercial','mixed','mixed','apartments','apartments','residential','residential'],
+  ['commercial','commercial','mixed','mixed','apartments','apartments','residential','residential'],
+  ['commercial','commercial','civic','civic','apartments','apartments','residential','residential'],
+  ['commercial','commercial','civic','civic','mixed','mixed','residential','residential'],
+  ['commercial','commercial','commercial','commercial','mixed','mixed','residential','residential'],
+  ['commercial','commercial','commercial','commercial','apartments','apartments','residential','residential'],
+  ['commercial','commercial','commercial','commercial','apartments','apartments','residential','residential'],
+  ['commercial','commercial','industrial','industrial','commercial','apartments','apartments','residential'],
+];
+
+// Build grids
+function buildGrid(containerId, data) {
+  const el = document.getElementById(containerId);
+  data.forEach(row => {
+    row.forEach(cell => {
+      const div = document.createElement('div');
+      div.className = 'land-cell';
+      div.style.backgroundColor = TYPES[cell]?.color || '#eee';
+      const tip = document.createElement('span');
+      tip.className = 'tooltip';
+      tip.textContent = TYPES[cell]?.label || '';
+      div.appendChild(tip);
+      el.appendChild(div);
+    });
+  });
+}
+
+buildGrid('grid-before', BEFORE);
+buildGrid('grid-after', AFTER);
+
+// Build legend
+const legendEl = document.getElementById('legend');
+Object.entries(TYPES).forEach(([key, val]) => {
+  const item = document.createElement('div');
+  item.className = 'legend-item';
+  item.innerHTML = `<div class="legend-swatch" style="background:${val.color}"></div><span class="legend-label">${val.label}</span>`;
+  legendEl.appendChild(item);
+});
+
+// Table data
+const TABLE_DATA = [
+  { year: 2010, res: 62, com: 18, mix: 0, ind: 8, vac: 12, val: 42.1, rev: 210, acre: 1319 },
+  { year: 2013, res: 58, com: 24, mix: 2, ind: 8, vac: 8, val: 58.3, rev: 291, acre: 1822 },
+  { year: 2016, res: 52, com: 30, mix: 6, ind: 6, vac: 6, val: 81.7, rev: 408, acre: 2553 },
+  { year: 2019, res: 44, com: 34, mix: 10, ind: 6, vac: 6, val: 112.4, rev: 562, acre: 3513 },
+  { year: 2022, res: 38, com: 38, mix: 14, ind: 4, vac: 6, val: 148.9, rev: 744, acre: 4653 },
+  { year: 2025, res: 30, com: 42, mix: 16, ind: 4, vac: 8, val: 189.2, rev: 946, acre: 5913 },
+];
+
+const maxRev = Math.max(...TABLE_DATA.map(d => d.rev));
+const tbody = document.getElementById('table-body');
+
+TABLE_DATA.forEach((r, i) => {
+  const barW = (r.rev / maxRev) * 80;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${r.year}</td>
+    <td class="col-res">${r.res}%</td>
+    <td class="col-com">${r.com}%</td>
+    <td class="col-mix">${r.mix}%</td>
+    <td class="col-ind">${r.ind}%</td>
+    <td class="col-vac">${r.vac}%</td>
+    <td class="col-val">$${r.val}M</td>
+    <td><div class="bar-cell"><div class="bar-fill" style="width:${barW}px;opacity:${0.7 + i * 0.06}"></div><span class="bar-val">$${r.rev}K</span></div></td>
+    <td class="col-acre">$${r.acre.toLocaleString()}</td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// Tab switching
+function showTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('diagram-section').style.display = (tab === 'both' || tab === 'diagram') ? '' : 'none';
+  document.getElementById('table-section').style.display = (tab === 'both' || tab === 'table') ? '' : 'none';
+}
+</script>
+</body>
+</html>
