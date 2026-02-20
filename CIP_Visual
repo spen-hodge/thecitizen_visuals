@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capital Improvement Plans Explained | The Citizen</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --poppy: #D93833;
+    --indigo: #33425C;
+    --jet: #373435;
+    --white: #FEFEFE;
+    --gray: #C3BFC2;
+    --dun: #D9C7AA;
+    --forest: #548C2F;
+    --dark-green: #124912;
+    --poppy-light: rgba(217, 56, 51, 0.08);
+    --indigo-light: rgba(51, 66, 92, 0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--white);
+    color: var(--jet);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--indigo);
+    color: var(--white);
+    padding: 3.5rem 2.5rem 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -80px;
+    width: 420px; height: 420px;
+    border: 2.5px solid rgba(217,56,51,0.35);
+    border-radius: 50%;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    transform: rotate(-25deg);
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -20px;
+    width: 300px; height: 300px;
+    border: 2px solid rgba(217,56,51,0.2);
+    border-radius: 50%;
+    border-left-color: transparent;
+    transform: rotate(15deg);
+  }
+  .hero-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .brand-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(254,254,254,0.55);
+    margin-bottom: 1.2rem;
+    font-weight: 500;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    line-height: 1.15;
+    font-weight: 400;
+    max-width: 600px;
+  }
+  .hero h1 span { color: var(--poppy); }
+  .hero-sub {
+    margin-top: 1rem;
+    font-size: 0.95rem;
+    color: rgba(254,254,254,0.72);
+    max-width: 520px;
+    line-height: 1.65;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2.5rem 2.5rem 3.5rem;
+  }
+
+  /* ── WHAT IS A CIP ── */
+  .intro-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    margin-bottom: 3rem;
+    align-items: start;
+  }
+  .intro-card {
+    background: var(--indigo-light);
+    border-radius: 10px;
+    padding: 2rem;
+    border-left: 4px solid var(--poppy);
+  }
+  .intro-card h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.35rem;
+    color: var(--indigo);
+    margin-bottom: 0.75rem;
+    font-weight: 400;
+  }
+  .intro-card p {
+    font-size: 0.88rem;
+    color: var(--jet);
+    line-height: 1.7;
+  }
+  .key-facts {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .fact {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
+  .fact-icon {
+    width: 36px; height: 36px;
+    min-width: 36px;
+    border-radius: 8px;
+    background: var(--poppy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 0.75rem;
+  }
+  .fact-text {
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+  .fact-text strong {
+    color: var(--indigo);
+    display: block;
+    font-size: 0.8rem;
+    margin-bottom: 0.1rem;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section-header {
+    margin-bottom: 1.8rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid var(--gray);
+    position: relative;
+  }
+  .section-header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 80px;
+    height: 2px;
+    background: var(--poppy);
+  }
+  .section-header h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: var(--indigo);
+    font-weight: 400;
+  }
+  .section-header p {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    color: rgba(55,52,53,0.6);
+  }
+
+  /* ── TIMELINE ── */
+  .timeline-section { margin-bottom: 3.5rem; }
+
+  .timeline {
+    position: relative;
+    padding: 1rem 0;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 28px;
+    top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, var(--poppy), var(--indigo));
+    border-radius: 3px;
+  }
+  .timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 1.6rem;
+    position: relative;
+  }
+  .timeline-item:last-child { margin-bottom: 0; }
+  .timeline-dot {
+    width: 20px; height: 20px;
+    min-width: 20px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 3px solid var(--poppy);
+    margin-top: 0.25rem;
+    margin-left: 19px;
+    position: relative;
+    z-index: 1;
+  }
+  .timeline-item:nth-child(even) .timeline-dot {
+    border-color: var(--indigo);
+  }
+  .timeline-content {
+    background: var(--white);
+    border: 1px solid rgba(195,191,194,0.5);
+    border-radius: 8px;
+    padding: 1.1rem 1.3rem;
+    flex: 1;
+    transition: box-shadow 0.2s;
+  }
+  .timeline-content:hover {
+    box-shadow: 0 3px 12px rgba(51,66,92,0.08);
+  }
+  .timeline-phase {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--poppy);
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+  .timeline-item:nth-child(even) .timeline-phase {
+    color: var(--indigo);
+  }
+  .timeline-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.05rem;
+    color: var(--jet);
+    margin-bottom: 0.3rem;
+    font-weight: 400;
+  }
+  .timeline-desc {
+    font-size: 0.8rem;
+    color: rgba(55,52,53,0.7);
+    line-height: 1.6;
+  }
+  .timeline-months {
+    display: inline-block;
+    margin-top: 0.45rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--white);
+    background: var(--indigo);
+    padding: 0.15rem 0.6rem;
+    border-radius: 3px;
+  }
+  .timeline-item:nth-child(even) .timeline-months {
+    background: var(--poppy);
+  }
+
+  /* ── CATEGORY TABLE ── */
+  .table-section { margin-bottom: 3rem; }
+
+  .category-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.82rem;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 8px rgba(51,66,92,0.07);
+  }
+  .category-table thead th {
+    background: var(--indigo);
+    color: var(--white);
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.9rem 1rem;
+    text-align: left;
+  }
+  .category-table thead th:first-child { padding-left: 1.3rem; }
+  .category-table tbody td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(195,191,194,0.35);
+    vertical-align: top;
+  }
+  .category-table tbody td:first-child { padding-left: 1.3rem; }
+  .category-table tbody tr:last-child td { border-bottom: none; }
+  .category-table tbody tr:nth-child(even) { background: var(--indigo-light); }
+  .category-table tbody tr:hover { background: var(--poppy-light); }
+
+  .cat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    color: var(--indigo);
+  }
+  .cat-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .cat-dot.roads { background: var(--poppy); }
+  .cat-dot.water { background: #2B7A9E; }
+  .cat-dot.parks { background: var(--forest); }
+  .cat-dot.facilities { background: var(--indigo); }
+  .cat-dot.drainage { background: var(--dun); }
+  .cat-dot.tech { background: #7B5EA7; }
+
+  .cost-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(195,191,194,0.3);
+    margin-top: 0.35rem;
+    overflow: hidden;
+  }
+  .cost-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+  }
+
+  .priority-tag {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.15rem 0.55rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .priority-tag.high { background: rgba(217,56,51,0.1); color: var(--poppy); }
+  .priority-tag.medium { background: rgba(217,199,170,0.4); color: #8B7355; }
+  .priority-tag.low { background: rgba(84,140,47,0.1); color: var(--forest); }
+
+  /* ── FUNDING SOURCES ── */
+  .funding-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+  .funding-card {
+    background: var(--white);
+    border: 1px solid rgba(195,191,194,0.45);
+    border-radius: 8px;
+    padding: 1.3rem;
+    text-align: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .funding-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(51,66,92,0.08);
+  }
+  .funding-pct {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    color: var(--poppy);
+    line-height: 1;
+  }
+  .funding-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--indigo);
+    margin-top: 0.4rem;
+  }
+  .funding-desc {
+    font-size: 0.72rem;
+    color: rgba(55,52,53,0.6);
+    margin-top: 0.25rem;
+    line-height: 1.5;
+  }
+
+  /* ── CITIZEN CALLOUT ── */
+  .callout {
+    background: var(--indigo);
+    color: var(--white);
+    border-radius: 10px;
+    padding: 2rem 2.2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .callout::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -40px;
+    width: 200px; height: 200px;
+    border: 2px solid rgba(217,56,51,0.3);
+    border-radius: 50%;
+    border-left-color: transparent;
+    border-bottom-color: transparent;
+    transform: rotate(20deg);
+  }
+  .callout h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 0.6rem;
+    font-weight: 400;
+    position: relative;
+  }
+  .callout h3 span { color: var(--poppy); }
+  .callout-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem 1.5rem;
+    position: relative;
+  }
+  .callout-item {
+    font-size: 0.8rem;
+    color: rgba(254,254,254,0.8);
+    padding-left: 1rem;
+    position: relative;
+  }
+  .callout-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.45rem;
+    width: 5px; height: 5px;
+    background: var(--poppy);
+    border-radius: 50%;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1.5rem 2.5rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    color: rgba(55,52,53,0.45);
+    border-top: 1px solid rgba(195,191,194,0.3);
+  }
+  .footer-brand {
+    font-weight: 600;
+    color: var(--indigo);
+    font-size: 0.75rem;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 720px) {
+    .intro-section { grid-template-columns: 1fr; }
+    .funding-grid { grid-template-columns: 1fr; }
+    .callout-items { grid-template-columns: 1fr; }
+    .hero { padding: 2.5rem 1.5rem 2rem; }
+    .main { padding: 2rem 1.5rem 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="brand-label">The Citizen · Civic Explainer Series</div>
+    <h1><span>Capital Improvement Plans</span><br>Explained Visually</h1>
+    <p class="hero-sub">How your city plans, funds, and builds the infrastructure you depend on — and how you can hold them accountable.</p>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- INTRO -->
+  <section class="intro-section">
+    <div class="intro-card">
+      <h2>What Is a CIP?</h2>
+      <p>A Capital Improvement Plan is a municipality's multi-year blueprint for building and maintaining major public infrastructure. It outlines which projects get built, when, and how they're funded — typically spanning 5 to 10 years with annual updates.</p>
+      <p style="margin-top: 0.7rem;">Unlike annual operating budgets that cover day-to-day expenses, CIPs focus on big-ticket items: roads, water systems, parks, and public buildings that shape a community for decades.</p>
+    </div>
+    <div class="key-facts">
+      <div class="fact">
+        <div class="fact-icon">$</div>
+        <div class="fact-text"><strong>Threshold</strong>Projects typically cost $50,000+ and have a useful life of 5+ years to qualify for CIP inclusion.</div>
+      </div>
+      <div class="fact">
+        <div class="fact-icon">5Y</div>
+        <div class="fact-text"><strong>Planning Horizon</strong>Most Texas cities use a 5-year rolling plan, updated annually as part of the budget process.</div>
+      </div>
+      <div class="fact">
+        <div class="fact-icon">TX</div>
+        <div class="fact-text"><strong>Texas Context</strong>Not legally required by state law, but considered best practice. Many growing cities use CIPs to justify bond elections.</div>
+      </div>
+      <div class="fact">
+        <div class="fact-icon">📋</div>
+        <div class="fact-text"><strong>Public Record</strong>CIP documents are public records. You have every right to request and review them under the Texas Public Information Act.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section class="timeline-section">
+    <div class="section-header">
+      <h2>The CIP Lifecycle</h2>
+      <p>From needs assessment to ribbon-cutting — how a capital project moves through the pipeline</p>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-phase">Phase 1</div>
+          <div class="timeline-title">Needs Assessment & Prioritization</div>
+          <div class="timeline-desc">City departments submit project requests based on infrastructure condition reports, growth projections, and citizen complaints. Staff and council rank projects by urgency, safety, and strategic alignment.</div>
+          <span class="timeline-months">Months 1–3</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-phase">Phase 2</div>
+          <div class="timeline-title">Cost Estimation & Funding Strategy</div>
+          <div class="timeline-desc">Engineers develop preliminary cost estimates. Finance staff identify funding sources — bonds, grants, impact fees, or general revenue. This is where the real fiscal commitments take shape.</div>
+          <span class="timeline-months">Months 3–5</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-phase">Phase 3</div>
+          <div class="timeline-title">Public Input & Council Review</div>
+          <div class="timeline-desc">Draft CIP presented to the public for comment at hearings or workshops. Council reviews priorities, debates trade-offs, and may adjust project rankings. This is your best window to speak up.</div>
+          <span class="timeline-months">Months 5–7</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-phase">Phase 4</div>
+          <div class="timeline-title">Adoption & Budget Integration</div>
+          <div class="timeline-desc">Council formally adopts the CIP, usually alongside the annual budget. Year 1 projects are funded and authorized. Years 2–5 remain planned but subject to future appropriation.</div>
+          <span class="timeline-months">Months 7–9</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-phase">Phase 5</div>
+          <div class="timeline-title">Design, Bid & Construction</div>
+          <div class="timeline-desc">Funded projects move into detailed engineering design, competitive bidding, and construction. Timelines vary widely — a road project may take 2–4 years from design to completion.</div>
+          <span class="timeline-months">Months 9–36+</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-phase">Phase 6</div>
+          <div class="timeline-title">Monitoring & Annual Update</div>
+          <div class="timeline-desc">Staff track project costs, timelines, and scope changes. The entire CIP is updated annually — projects can be added, delayed, or removed. Watch for projects that quietly slip year after year.</div>
+          <span class="timeline-months">Ongoing / Annual</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORY TABLE -->
+  <section class="table-section">
+    <div class="section-header">
+      <h2>Typical CIP Project Categories</h2>
+      <p>What your tax dollars build — common project types and their relative scale</p>
+    </div>
+    <table class="category-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Examples</th>
+          <th>Typical Cost Range</th>
+          <th style="width:130px">Relative Scale</th>
+          <th>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="cat-badge"><span class="cat-dot roads"></span>Roads & Mobility</span></td>
+          <td>Street reconstruction, sidewalks, traffic signals, intersection improvements</td>
+          <td>$500K – $25M+</td>
+          <td><div class="cost-bar"><div class="cost-bar-fill" style="width:95%;background:var(--poppy)"></div></div></td>
+          <td><span class="priority-tag high">High</span></td>
+        </tr>
+        <tr>
+          <td><span class="cat-badge"><span class="cat-dot water"></span>Water & Sewer</span></td>
+          <td>Water main replacement, treatment plant upgrades, sewer line rehab</td>
+          <td>$1M – $50M+</td>
+          <td><div class="cost-bar"><div class="cost-bar-fill" style="width:100%;background:#2B7A9E"></div></div></td>
+          <td><span class="priority-tag high">High</span></td>
+        </tr>
+        <tr>
+          <td><span class="cat-badge"><span class="cat-dot drainage"></span>Drainage & Flood</span></td>
+          <td>Stormwater channels, detention ponds, culvert replacements, flood mitigation</td>
+          <td>$250K – $15M</td>
+          <td><div class="cost-bar"><div class="cost-bar-fill" style="width:65%;background:var(--dun)"></div></div></td>
+          <td><span class="priority-tag high">High</span></td>
+        </tr>
+        <tr>
+          <td><span class="cat-badge"><span class="cat-dot parks"></span>Parks & Recreation</span></td>
+          <td>Trail construction, playground renovations, athletic fields, community centers</td>
+          <td>$100K – $10M</td>
+          <td><div class="cost-bar"><div class="cost-bar-fill" style="width:45%;background:var(--forest)"></div></div></td>
+          <td><span class="priority-tag medium">Medium</span></td>
+        </tr>
+        <tr>
+          <td><span class="cat-badge"><span class="cat-dot facilities"></span>Public Facilities</span></td>
+          <td>City hall renovation, fire stations, libraries, police substations</td>
+          <td>$500K – $20M</td>
+          <td><div class="cost-bar"><div class="cost-bar-fill" style="width:75%;background:var(--indigo)"></div></div></td>
+          <td><span class="priority-tag medium">Medium</span></td>
+        </tr>
+        <tr>
+          <td><span class="cat-badge"><span class="cat-dot tech"></span>Technology & Fleet</span></td>
+          <td>IT infrastructure, GIS systems, vehicle replacements, equipment upgrades</td>
+          <td>$50K – $5M</td>
+          <td><div class="cost-bar"><div class="cost-bar-fill" style="width:25%;background:#7B5EA7"></div></div></td>
+          <td><span class="priority-tag low">Low</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- FUNDING SOURCES -->
+  <section>
+    <div class="section-header">
+      <h2>Where the Money Comes From</h2>
+      <p>Typical funding mix for a mid-size Texas city's CIP</p>
+    </div>
+    <div class="funding-grid">
+      <div class="funding-card">
+        <div class="funding-pct">40%</div>
+        <div class="funding-label">General Obligation Bonds</div>
+        <div class="funding-desc">Voter-approved debt backed by property tax revenue</div>
+      </div>
+      <div class="funding-card">
+        <div class="funding-pct">25%</div>
+        <div class="funding-label">Revenue Bonds & Utility Fees</div>
+        <div class="funding-desc">Repaid from water/sewer charges and service fees</div>
+      </div>
+      <div class="funding-card">
+        <div class="funding-pct">15%</div>
+        <div class="funding-label">Grants & State/Federal Aid</div>
+        <div class="funding-desc">TxDOT, FEMA, EPA, and other agency grants</div>
+      </div>
+      <div class="funding-card">
+        <div class="funding-pct">10%</div>
+        <div class="funding-label">Impact Fees</div>
+        <div class="funding-desc">Charged to developers to fund growth-related infrastructure</div>
+      </div>
+      <div class="funding-card">
+        <div class="funding-pct">7%</div>
+        <div class="funding-label">General Fund Transfers</div>
+        <div class="funding-desc">Cash from annual operating budget surplus</div>
+      </div>
+      <div class="funding-card">
+        <div class="funding-pct">3%</div>
+        <div class="funding-label">Special Districts (TIRZ, PID, MUD)</div>
+        <div class="funding-desc">Tax increment and special assessment financing</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALLOUT -->
+  <div class="callout">
+    <h3>What <span>Citizens</span> Should Watch For</h3>
+    <div class="callout-items">
+      <div class="callout-item">Projects that slip from Year 1 to Year 2 repeatedly without explanation</div>
+      <div class="callout-item">Cost estimates that balloon between annual CIP updates</div>
+      <div class="callout-item">Vague funding sources listed as "TBD" or "future bond election"</div>
+      <div class="callout-item">New projects added mid-cycle without public input</div>
+      <div class="callout-item">Projects tied to developer agreements that aren't publicly disclosed</div>
+      <div class="callout-item">Deferred maintenance disguised as new capital spending</div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <span class="footer-brand">the citizen.</span>
+  <span>Independent accountability journalism · Parker County, TX</span>
+</footer>
+
+</body>
+</html>
