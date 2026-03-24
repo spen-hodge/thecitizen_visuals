@@ -20,6 +20,7 @@ This repo hosts standalone, interactive HTML visuals that accompany our Substack
 | File | Title | Description |
 |------|-------|-------------|
 | [`Maintenance_Backlog_Data_Review.html`](./Maintenance_Backlog_Data_Review.html) | Maintenance Backlog — Data Review | — |
+| [`development-deal-evaluator.html`](./development-deal-evaluator.html) | Development Deal Evaluator Civic Toolkit | Evaluate economic development incentive deals against GFOA best practices. Fiscal productivity per acre, infrastructure risk exposure, and market evidence analysis. |
 | [`econ-dev-toolbox.html`](./econ-dev-toolbox.html) | The Economic Development Toolbox | — |
 | [`entrepreneurial-conditions.html`](./entrepreneurial-conditions.html) | Entrepreneurial Conditions | — |
 | [`tax-base-interactive.html`](./tax-base-interactive.html) | Tax Base Impact Over Time Interactive | How shifting land use percentages compound into dramatically different fiscal outcomes over 15 years of incremental rezoning. |
