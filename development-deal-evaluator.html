@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Development Deal Evaluator — The Citizen Civic Toolkit</title>
+<meta name="description" content="Evaluate economic development incentive deals against GFOA best practices. Fiscal productivity per acre, infrastructure risk exposure, and market evidence analysis.">
+<meta property="og:title" content="Development Deal Evaluator — The Citizen">
+<meta property="og:description" content="Empirical analysis of development deals against GFOA best practices.">
+<meta property="og:type" content="website">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, sans-serif; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.4/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useCallback, useMemo, useRef } = React;
+
+
+const B = {
+  poppy: "#D93833", indigo: "#33425C", jet: "#373435", offWhite: "#FAF8F5",
+  sand: "#F0ECE4", green: "#2D7A4F", yellow: "#C5940A", red: "#C0392B",
+  gray: "#8A8786", grayL: "#D5D2CD", amber: "#D4850A", blue: "#2563EB",
+};
+
+const pN = (s) => { if (!s && s !== 0) return 0; const n = parseFloat(String(s).replace(/[$,\s%]/g, "")); return isNaN(n) ? 0 : n; };
+const fD = (n) => { if (!n) return "$0"; return (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US"); };
+const pctC = (p) => p >= 0.7 ? B.green : p >= 0.4 ? B.yellow : B.red;
+const pctL = (p) => p >= 0.7 ? "STRONG" : p >= 0.4 ? "CAUTION" : "WEAK";
+
+const TOOLKIT_LOGO = "data:image/png;base64,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";
+
+/* ═══ PDF.JS ═══ */
+const loadPdfJs = () => new Promise((res, rej) => {
+  if (window.pdfjsLib) return res(window.pdfjsLib);
+  const s = document.createElement("script");
+  s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+  s.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; res(window.pdfjsLib); };
+  s.onerror = () => rej(new Error("PDF.js failed")); document.head.appendChild(s);
+});
+const extractPdf = async (file) => {
+  const lib = await loadPdfJs(); const buf = await file.arrayBuffer();
+  const pdf = await lib.getDocument({ data: buf }).promise;
+  const pages = Math.min(pdf.numPages, 30); let text = "";
+  for (let i = 1; i <= pages; i++) { const pg = await pdf.getPage(i); const c = await pg.getTextContent(); text += c.items.map(x => x.str).join(" ") + "\n\n"; }
+  return { text: text.slice(0, 60000), totalPages: pdf.numPages, extractedPages: pages };
+};
+
+/* ═══ jsPDF LOADER ═══ */
+const loadJsPdf = () => new Promise((res, rej) => {
+  if (window.jspdf) return res(window.jspdf);
+  const s = document.createElement("script");
+  s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js";
+  s.onload = () => res(window.jspdf);
+  s.onerror = () => rej(new Error("Failed to load jsPDF"));
+  document.head.appendChild(s);
+});
+const DOC_TYPES = [
+  { value: "agreement", label: "Development Agreement" },
+  { value: "budget", label: "City Budget / AFR" },
+  { value: "packet", label: "Council Packet" },
+  { value: "fiscal", label: "Fiscal Impact Analysis" },
+  { value: "auto", label: "Auto-detect" },
+];
+const buildPrompt = (dt, text) => {
+  const base = { agreement: "Focus on incentive terms, abatement %, duration, clawbacks, job commitments, capital investment mins, reporting.", budget: "Focus on revenue, costs, tax rates, tax base, population, fund balances.", packet: "Focus on project overview, developer, deal terms, staff recommendations.", fiscal: "Focus on projected revenue, costs, net impact, payback, assumptions.", auto: "Extract all relevant municipal development data." };
+  return `Expert municipal finance analyst. Extract structured data from this document. ${base[dt]}
+Return ONLY valid JSON. Use "" for unknowns. Dollar amounts as raw numbers. Percentages as numbers only.
+{"projectName":"","developer":"","projectType":"","location":"","estimatedValue":"","acreage":"","dealDate":"","jurisdictionPop":"","existingTaxBase":"","cityTaxRate":"","abatementPct":"","abatementYears":"","feeWaivers":"","infraContribCity":"","landContrib":"","grantAmount":"","otherIncentives":"","totalIncentiveOverride":"","projectedRevAnnual":"","projectedCostAnnual":"","paybackYears":"","revenueAssumptions":"","infraCostEst":"","infraFundingSource":"","jobsFTE":"","wageAnnual":"","capitalInvestMin":"","hasClawback":"","clawbackPct":"","reportingFrequency":"","milestoneCount":"","incentiveTypes":"","waterDemandGPD":"","sewerDemandGPD":"","powerDemandMW":"","roadLaneMiles":""}
+DOCUMENT:\n${text}`;
+};
+const callAI = async (dt, text) => {
+  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: buildPrompt(dt, text) }] }) });
+  if (!r.ok) throw new Error("API " + r.status);
+  const d = await r.json(); const raw = d.content?.map(b => b.text || "").join("") || "";
+  return JSON.parse(raw.replace(/```json|```/g, "").trim());
+};
+
+/* ═══ DATA LOOKUP LINKS (under input boxes — actual search/lookup tools only) ═══ */
+const LOOKUPS = {
+  population: { label: "Census — Parker County", url: "https://data.census.gov/profile/Parker_County,_Texas?g=050XX00US48367" },
+  taxBase: { label: "Parker CAD Property Search", url: "https://www.southwestdatasolution.com/webindex.aspx?dbkey=PARKERCAD" },
+  taxRate: { label: "TX Comptroller Tax Rates", url: "https://comptroller.texas.gov/taxes/property-tax/rates/" },
+  parcelSearch: { label: "Parker CAD Parcel Lookup", url: "https://www.southwestdatasolution.com/webindex.aspx?dbkey=PARKERCAD" },
+  cityBudget: { label: "Willow Park Budget Docs", url: "https://www.willowparktx.gov/261/Fiscal-Year-2024-2025" },
+  tceqWater: { label: "TCEQ Water Utility Search", url: "https://www.tceq.texas.gov/permitting/water_rights/wr-permitting/wrwud" },
+  tceqCCR: { label: "TCEQ CCR Search", url: "https://dww2.tceq.texas.gov/DWW/" },
+  txdotCosts: { label: "TxDOT Avg. Road Costs", url: "https://www.txdot.gov/data-maps.html" },
+  comptrollerAbatement: { label: "TX Comptroller Ch. 312 DB", url: "https://comptroller.texas.gov/economy/local/ch312/" },
+  comptrollerCh380: { label: "TX Comptroller Ch. 380 Info", url: "https://comptroller.texas.gov/economy/local/ch380-381/" },
+  nctcog: { label: "NCTCOG Regional Data", url: "https://www.nctcog.org/regional-data/population-estimates" },
+  bls: { label: "BLS Area Wages", url: "https://www.bls.gov/oes/current/oessrcma.htm" },
+  feeSchedule: { label: "City Fee Schedule", url: "https://www.willowparktx.gov/DocumentCenter" },
+  schoolDistrict: { label: "TX School District Locator", url: "https://tea.texas.gov/texas-schools/general-information/school-district-locator" },
+};
+
+/* ═══ REFERENCE SOURCES (methodology, research, market reports — shown at page bottom) ═══ */
+const REFERENCES = [
+  { label: "GFOA Economic Development Best Practices", url: "https://www.gfoa.org/best-practices/economic-development", category: "Methodology" },
+  { label: "GFOA — Evaluating & Selecting Projects", url: "https://www.gfoa.org/materials/evaluating-and-selecting-economic-development-projects", category: "Methodology" },
+  { label: "GFOA — Monitoring Performance", url: "https://www.gfoa.org/materials/monitoring-economic-development-performance", category: "Methodology" },
+  { label: "GFOA — Capital Planning & Infrastructure", url: "https://www.gfoa.org/best-practices/capital-planning-and-infrastructure", category: "Methodology" },
+  { label: "Urban3 — Value per Acre Analysis", url: "https://www.urbanthree.com/", category: "Methodology" },
+  { label: "CoStar — Commercial Market Data (subscription)", url: "https://www.costar.com/", category: "Market Research" },
+  { label: "LoopNet — Commercial Vacancy & Listings", url: "https://www.loopnet.com/", category: "Market Research" },
+  { label: "CBRE — Market Reports & Figures", url: "https://www.cbre.com/insights/figures", category: "Market Research" },
+  { label: "JLL — Research & Trends", url: "https://www.us.jll.com/en/trends-and-insights/research", category: "Market Research" },
+  { label: "ICMA — Economic Development Performance", url: "https://icma.org/articles/article/monitoring-economic-development-performance", category: "Methodology" },
+  { label: "Lincoln Institute of Land Policy", url: "https://www.lincolninst.edu/", category: "Research" },
+  { label: "Strong Towns — Fiscal Analysis", url: "https://www.strongtowns.org/", category: "Research" },
+];
+
+/* ═══ UI PRIMITIVES ═══ */
+const iBase = { width: "100%", boxSizing: "border-box", padding: "9px 12px", fontSize: 14, border: `1px solid ${B.grayL}`, borderRadius: 4, background: "#fff", color: B.jet, fontFamily: "inherit", outline: "none" };
+
+function Lookup({ links }) {
+  if (!links || links.length === 0) return null;
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+      {links.map((lk, i) => (
+        <a key={i} href={lk.url} target="_blank" rel="noopener noreferrer" style={{
+          display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 600,
+          color: B.blue, textDecoration: "none", padding: "2px 8px", borderRadius: 3,
+          background: B.blue + "08", border: `1px solid ${B.blue}18`,
+          letterSpacing: "0.02em", lineHeight: 1.4,
+        }}>
+          <span style={{ fontSize: 9 }}>🔗</span> {lk.label}
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function AiBadge() { return <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: B.amber, background: B.amber + "15", border: `1px solid ${B.amber}30`, padding: "1px 6px", borderRadius: 3, marginLeft: 6 }}><span style={{ fontSize: 7 }}>●</span> AI DRAFT</span>; }
+
+function Field({ label, sublabel, children, wide, aiDraft, lookups }) {
+  return (
+    <div style={{ marginBottom: 18, flex: wide ? "1 1 100%" : "1 1 calc(50% - 12px)", minWidth: wide ? "100%" : 240 }}>
+      <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: B.indigo, letterSpacing: "0.04em", marginBottom: 4, textTransform: "uppercase" }}>{label}{aiDraft && <AiBadge />}</label>
+      {sublabel && <div style={{ fontSize: 11, color: B.gray, marginBottom: 4, lineHeight: 1.3 }}>{sublabel}</div>}
+      {children}
+      <Lookup links={lookups} />
+    </div>
+  );
+}
+
+function DIn({ value, onChange, placeholder }) {
+  const [f, setF] = useState(false);
+  const raw = String(value || ""), n = pN(raw);
+  return <input style={iBase} value={f ? raw : (raw && n) ? fD(n) : raw} onChange={e => onChange(e.target.value.replace(/[^0-9.,\-]/g, ""))} onFocus={() => setF(true)} onBlur={() => setF(false)} placeholder={placeholder} />;
+}
+function NIn({ value, onChange, placeholder, suffix }) {
+  return <div style={{ position: "relative" }}><input style={{ ...iBase, paddingRight: suffix ? 40 : 12 }} value={value || ""} onChange={e => onChange(e.target.value.replace(/[^0-9.]/g, ""))} placeholder={placeholder} />{suffix && <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: B.gray, pointerEvents: "none" }}>{suffix}</span>}</div>;
+}
+function Radio({ name, options, value, onChange }) {
+  return <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{options.map(o => { const s = value === o.value; return <label key={o.value} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 4, fontSize: 13, cursor: "pointer", border: `1px solid ${s ? B.indigo : B.grayL}`, background: s ? B.indigo + "0D" : "#fff", color: s ? B.indigo : B.jet, fontWeight: s ? 600 : 400 }}><input type="radio" name={name} value={o.value} checked={s} onChange={() => onChange(o.value)} style={{ accentColor: B.indigo, margin: 0 }} />{o.label}</label>; })}</div>;
+}
+function Checks({ options, values, onChange }) {
+  return <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{options.map(o => { const s = values.includes(o.value); return <label key={o.value} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 4, fontSize: 13, cursor: "pointer", border: `1px solid ${s ? B.indigo : B.grayL}`, background: s ? B.indigo + "0D" : "#fff", color: s ? B.indigo : B.jet, fontWeight: s ? 600 : 400 }}><input type="checkbox" checked={s} onChange={() => onChange(s ? values.filter(x => x !== o.value) : [...values, o.value])} style={{ accentColor: B.indigo, margin: 0 }} />{o.label}</label>; })}</div>;
+}
+function SH({ icon, title, subtitle, score, max }) {
+  return <div style={{ marginBottom: 20, borderBottom: `2px solid ${B.sand}`, paddingBottom: 14 }}><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}><h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: B.indigo, display: "flex", alignItems: "center", gap: 8 }}><span>{icon}</span> {title}</h2>{max > 0 && <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: pctC(score / max) + "18", color: pctC(score / max), fontWeight: 700, fontSize: 12, padding: "4px 10px", borderRadius: 4, border: `1px solid ${pctC(score / max)}40` }}><span style={{ width: 7, height: 7, borderRadius: "50%", background: pctC(score / max) }} />{pctL(score / max)} — {score}/{max}</span>}</div>{subtitle && <p style={{ margin: "6px 0 0", fontSize: 13, color: B.gray, lineHeight: 1.4 }}>{subtitle}</p>}</div>;
+}
+function GN({ children }) { return <div style={{ background: B.indigo + "08", border: `1px solid ${B.indigo}20`, borderLeft: `3px solid ${B.indigo}`, borderRadius: "0 4px 4px 0", padding: "10px 14px", fontSize: 12, color: B.indigo, lineHeight: 1.5, marginBottom: 18 }}><strong style={{ fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", opacity: 0.7 }}>GFOA BEST PRACTICE</strong><div style={{ marginTop: 4 }}>{children}</div></div>; }
+function CB({ label, value, color, sub }) { return <div style={{ flex: "1 1 170px", padding: "14px 16px", borderRadius: 6, background: (color || B.indigo) + "0A", border: `1px solid ${(color || B.indigo)}20` }}><div style={{ fontSize: 11, fontWeight: 700, color: B.gray, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>{label}</div><div style={{ fontSize: 22, fontWeight: 800, color: color || B.indigo, lineHeight: 1.1 }}>{value}</div>{sub && <div style={{ fontSize: 11, color: B.gray, marginTop: 4 }}>{sub}</div>}</div>; }
+function SBar({ label, score, max }) { const p = max > 0 ? score / max : 0; return <div style={{ marginBottom: 12 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 600, marginBottom: 4 }}><span style={{ color: B.jet }}>{label}</span><span style={{ color: pctC(p) }}>{score}/{max}</span></div><div style={{ height: 8, background: B.sand, borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", width: `${p * 100}%`, background: pctC(p), borderRadius: 4, transition: "width 0.4s" }} /></div></div>; }
+
+/* ═══ STATE ═══ */
+const D = {
+  projectName: "", developer: "", projectType: "", location: "", estimatedValue: "",
+  acreage: "", dealDate: "", jurisdictionPop: "", existingTaxBase: "", cityTaxRate: "",
+  jurisdictionAcreage: "",
+  incentiveTypes: [], abatementPct: "", abatementYears: "", feeWaivers: "",
+  infraContribCity: "", landContrib: "", grantAmount: "", otherIncentives: "",
+  totalIncentiveOverride: "",
+  projectedRevAnnual: "", projectedCostAnnual: "", paybackYears: "",
+  revenueAssumptions: "", infraCostEst: "",
+  // Market Evidence (empirical)
+  submarketVacancy: "", comparableSalePSF: "", monthsOfInventory: "",
+  siteCostPremium: "", competingJurisdictions: "",
+  hasFeasibilityStudy: "", hasFinancialDisclosure: "",
+  // Infrastructure Capacity (empirical)
+  waterCapacityGPD: "", waterCurrentGPD: "", waterDemandGPD: "",
+  sewerCapacityGPD: "", sewerCurrentGPD: "", sewerDemandGPD: "",
+  powerAvailableMW: "", powerDemandMW: "",
+  roadLaneMiles: "", roadCostPerMile: "",
+  infraFundingSource: "", deferredMaintenanceBacklog: "",
+  developerInfraContrib: "",
+  // Performance (empirical — all feed formulas)
+  jobsFTE: "", jobsDeadlineYrs: "",
+  wageAnnual: "", areaMedianWage: "",
+  capitalInvestMin: "",
+  milestoneCount: "", completionDeadlineYrs: "",
+  hasClawback: "", clawbackPct: "",
+  reportingFrequency: "", performanceNotes: "",
+};
+
+const SECS = [
+  { id: "overview", label: "Overview", icon: "📋" },
+  { id: "incentives", label: "Incentives", icon: "💰" },
+  { id: "market", label: "Market Evidence", icon: "📈" },
+  { id: "infracap", label: "Infrastructure", icon: "🏗️" },
+  { id: "performance", label: "Accountability", icon: "📐" },
+  { id: "productivity", label: "Productivity/Acre", icon: "📊" },
+  { id: "report", label: "Full Report", icon: "📄" },
+];
+
+/* ═══ CALCS ═══ */
+const calcAbatement = d => { const p = pN(d.abatementPct), y = pN(d.abatementYears), r = pN(d.cityTaxRate), v = pN(d.estimatedValue); return (p > 0 && y > 0 && v > 0) ? (p / 100) * ((r > 0 ? r / 100 : 0.025) * v) * y : 0; };
+const calcTotal = d => calcAbatement(d) + pN(d.feeWaivers) + pN(d.infraContribCity) + pN(d.landContrib) + pN(d.grantAmount) + pN(d.otherIncentives);
+const getEff = d => { const o = pN(d.totalIncentiveOverride); return o > 0 ? o : calcTotal(d); };
+
+const calcMarketScore = (d) => {
+  let score = 0, max = 10;
+  const vac = pN(d.submarketVacancy);
+  if (vac > 15) score += 3; else if (vac > 8) score += 2; else if (vac > 0) score += 0.5;
+  const mo = pN(d.monthsOfInventory);
+  if (mo > 18) score += 2; else if (mo > 10) score += 1;
+  const prem = pN(d.siteCostPremium);
+  if (prem > 500000) score += 2; else if (prem > 100000) score += 1;
+  if (d.hasFeasibilityStudy === "yes") score += 1.5; else if (d.hasFeasibilityStudy === "no") score -= 0.5;
+  if (d.hasFinancialDisclosure === "yes") score += 1.5;
+  return { score: Math.max(0, Math.round(score * 10) / 10), max };
+};
+
+const calcInfraRisk = (d) => {
+  let score = 0, max = 10;
+  const wCap = pN(d.waterCapacityGPD), wCur = pN(d.waterCurrentGPD), wDem = pN(d.waterDemandGPD);
+  if (wCap > 0) { const postUtil = (wCur + wDem) / wCap; if (postUtil < 0.75) score += 2.5; else if (postUtil < 0.85) score += 1.5; else if (postUtil < 0.95) score += 0.5; }
+  const sCap = pN(d.sewerCapacityGPD), sCur = pN(d.sewerCurrentGPD), sDem = pN(d.sewerDemandGPD);
+  if (sCap > 0) { const postUtil = (sCur + sDem) / sCap; if (postUtil < 0.75) score += 2.5; else if (postUtil < 0.85) score += 1.5; else if (postUtil < 0.95) score += 0.5; }
+  const pAvail = pN(d.powerAvailableMW), pDem = pN(d.powerDemandMW);
+  if (pAvail > 0 && pDem > 0 && pDem / pAvail < 0.5) score += 2; else if (pAvail > 0 && pDem > 0 && pDem / pAvail < 0.75) score += 1;
+  const devContrib = pN(d.developerInfraContrib), totalInfra = pN(d.infraCostEst);
+  if (totalInfra > 0 && devContrib / totalInfra >= 0.8) score += 3; else if (totalInfra > 0 && devContrib / totalInfra >= 0.5) score += 2; else if (totalInfra > 0 && devContrib / totalInfra >= 0.25) score += 1;
+  return { score: Math.round(Math.min(score, max) * 10) / 10, max };
+};
+
+const computeScores = (d) => {
+  const r = n => Math.round(n * 10) / 10;
+  let inc = 0; if (d.incentiveTypes.length > 0) inc++; if (getEff(d) > 0) inc++; if (pN(d.abatementYears) > 0 && pN(d.abatementYears) <= 10) inc++;
+  let fis = 0; const rv = pN(d.projectedRevAnnual), co = pN(d.projectedCostAnnual);
+  if (rv > 0 && co > 0) { if (rv > co * 1.25) fis += 2; else if (rv > co) fis += 1.5; else if (rv > co * 0.75) fis += 0.5; }
+  const pb = pN(d.paybackYears); if (pb > 0 && pb <= 5) fis += 2; else if (pb > 0 && pb <= 10) fis += 1; else if (pb > 10) fis += 0.5;
+  let per = 0;
+  // Cost per Job: < $15k strong, $15-30k moderate, >$30k weak
+  const fte = pN(d.jobsFTE), effInc = getEff(d);
+  const cpj = fte > 0 && effInc > 0 ? effInc / fte : 0;
+  if (cpj > 0 && cpj < 15000) per += 1.5; else if (cpj > 0 && cpj < 30000) per += 1; else if (cpj > 0) per += 0.5;
+  // Wage Premium: >20% above median strong, 0-20% moderate, below median weak
+  const wage = pN(d.wageAnnual), median = pN(d.areaMedianWage);
+  const wagePrem = median > 0 && wage > 0 ? (wage - median) / median : -1;
+  if (wagePrem >= 0.2) per += 1; else if (wagePrem >= 0) per += 0.5;
+  // Capital per Job: higher = better commitment
+  const capMin = pN(d.capitalInvestMin);
+  const capPerJob = fte > 0 && capMin > 0 ? capMin / fte : 0;
+  if (capPerJob >= 200000) per += 1; else if (capPerJob >= 100000) per += 0.5;
+  // Clawback: % of incentive recoverable
+  const clawPct = pN(d.clawbackPct);
+  if (d.hasClawback === "yes" && clawPct >= 80) per += 2; else if (d.hasClawback === "yes" && clawPct >= 50) per += 1.5;
+  else if (d.hasClawback === "partial" && clawPct > 0) per += 1; else if (d.hasClawback === "yes") per += 1;
+  // Reporting
+  if (d.reportingFrequency === "quarterly") per += 1.5; else if (d.reportingFrequency === "annual") per += 1;
+  // Milestone density: milestones per year of agreement
+  const mCount = pN(d.milestoneCount), cDeadline = pN(d.completionDeadlineYrs);
+  const mDensity = cDeadline > 0 && mCount > 0 ? mCount / cDeadline : 0;
+  if (mDensity >= 2) per += 1; else if (mDensity >= 1) per += 0.5;
+  const mkt = calcMarketScore(d), inf = calcInfraRisk(d);
+  const total = r(inc + fis + per) + r(mkt.score / mkt.max * 5) + r(inf.score / inf.max * 5);
+  return { incentive: { score: r(inc), max: 3 }, fiscal: { score: r(fis), max: 5 }, performance: { score: r(Math.min(per, 8)), max: 8 }, market: mkt, infrastructure: inf, total: { score: r(inc + fis + Math.min(per, 8)) + r(mkt.score / mkt.max * 5) + r(inf.score / inf.max * 5), max: 26 } };
+};
+
+/* ═══ IMPORT PANEL ═══ */
+function ImportPanel({ onApply, onClose }) {
+  const [file, setFile] = useState(null); const [docType, setDocType] = useState("auto");
+  const [status, setStatus] = useState("idle"); const [error, setError] = useState(""); const [preview, setPreview] = useState(null);
+  const [dragOver, setDragOver] = useState(false); const [pdfInfo, setPdfInfo] = useState(null);
+  const handleFile = f => { if (!f) return; if (f.type !== "application/pdf") { setError("PDF only"); return; } setFile(f); setError(""); setStatus("idle"); setPreview(null); };
+  const run = async () => {
+    setStatus("extracting"); setError("");
+    try {
+      const r = await extractPdf(file); setPdfInfo({ pages: r.totalPages, chars: r.text.length });
+      setStatus("analyzing"); const fields = await callAI(docType, r.text);
+      if (fields.incentiveTypes && typeof fields.incentiveTypes === "string") fields.incentiveTypes = fields.incentiveTypes.split(",").map(s => s.trim()).filter(Boolean);
+      setPreview(fields); setStatus("preview");
+    } catch (e) { setError(e.message); setStatus("error"); }
+  };
+  const labels = { projectName: "Project", developer: "Developer", projectType: "Type", location: "Location", estimatedValue: "Value", acreage: "Acres", abatementPct: "Abate %", abatementYears: "Abate Yrs", feeWaivers: "Fees", infraContribCity: "City Infra", landContrib: "Land", grantAmount: "Grants", totalIncentiveOverride: "Total Inc.", projectedRevAnnual: "Revenue", projectedCostAnnual: "Cost", jobsFTE: "FTEs", capitalInvestMin: "Min Capital", hasClawback: "Clawback", reportingFrequency: "Reporting", wageAnnual: "Wage $", clawbackPct: "Clawback %", waterDemandGPD: "Water GPD", sewerDemandGPD: "Sewer GPD", powerDemandMW: "Power MW", roadLaneMiles: "Road Miles", incentiveTypes: "Inc. Types" };
+  const nonEmpty = preview ? Object.entries(preview).filter(([, v]) => v && (Array.isArray(v) ? v.length > 0 : String(v).trim() !== "" && String(v) !== "0")) : [];
+
+  return (
+    <div style={{ background: "#fff", border: `2px solid ${B.indigo}20`, borderRadius: 8, padding: 24, marginBottom: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}><h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: B.indigo }}>📄 AI Document Import</h3><button onClick={onClose} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: B.gray }}>✕</button></div>
+      <div onDrop={e => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }} onDragOver={e => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)}
+        onClick={() => { const i = document.createElement("input"); i.type = "file"; i.accept = ".pdf"; i.onchange = e => handleFile(e.target.files[0]); i.click(); }}
+        style={{ border: `2px dashed ${dragOver ? B.indigo : file ? B.green + "60" : B.grayL}`, borderRadius: 8, padding: file ? "12px 20px" : "28px 20px", textAlign: "center", cursor: "pointer", background: dragOver ? B.indigo + "06" : file ? B.green + "06" : B.offWhite, marginBottom: 16 }}>
+        {file ? <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center" }}><span>📎</span><div style={{ textAlign: "left" }}><div style={{ fontSize: 14, fontWeight: 600 }}>{file.name}</div><div style={{ fontSize: 12, color: B.gray }}>{(file.size / 1024).toFixed(0)} KB{pdfInfo ? ` · ${pdfInfo.pages}p` : ""}</div></div></div> : <><div style={{ fontSize: 28, marginBottom: 6 }}>📄</div><div style={{ fontSize: 14, fontWeight: 600, color: B.indigo }}>Drop PDF or click to browse</div></>}
+      </div>
+      {file && status !== "preview" && <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 16 }}>
+        <div style={{ flex: "1 1 200px" }}><select style={{ ...iBase, appearance: "auto" }} value={docType} onChange={e => setDocType(e.target.value)}>{DOC_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select></div>
+        <button onClick={run} disabled={status === "extracting" || status === "analyzing"} style={{ padding: "10px 24px", background: B.indigo, color: "#fff", border: "none", borderRadius: 4, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: status === "extracting" || status === "analyzing" ? 0.7 : 1 }}>
+          {status === "extracting" ? "⏳ Extracting..." : status === "analyzing" ? "🤖 Analyzing..." : "Extract Fields"}
+        </button>
+      </div>}
+      {error && <div style={{ padding: "10px 14px", background: B.red + "0A", borderRadius: 4, fontSize: 13, color: B.red, marginBottom: 16 }}>⚠ {error}</div>}
+      {status === "preview" && preview && <div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: B.indigo, marginBottom: 8 }}>Extracted {nonEmpty.length} fields:</div>
+        <div style={{ maxHeight: 250, overflowY: "auto", border: `1px solid ${B.grayL}`, borderRadius: 6, padding: "6px 0" }}>
+          {nonEmpty.map(([k, v]) => <div key={k} style={{ display: "flex", padding: "4px 14px", fontSize: 13, borderBottom: `1px solid ${B.sand}`, gap: 12 }}><span style={{ fontWeight: 600, color: B.indigo, minWidth: 100 }}>{labels[k] || k}</span><span style={{ color: B.jet }}>{Array.isArray(v) ? v.join(", ") : String(v)}</span></div>)}
+        </div>
+        <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+          <button onClick={() => onApply(preview)} style={{ padding: "10px 24px", background: B.green, color: "#fff", border: "none", borderRadius: 4, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Apply {nonEmpty.length} Fields</button>
+          <button onClick={() => { setStatus("idle"); setPreview(null); }} style={{ padding: "10px 24px", background: "#fff", border: `1px solid ${B.grayL}`, borderRadius: 4, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+        </div>
+      </div>}
+    </div>
+  );
+}
+
+/* ═══ SECTIONS ═══ */
+function OverviewSec({ d, s, ai }) {
+  const pv = pN(d.estimatedValue), tb = pN(d.existingTaxBase), pop = pN(d.jurisdictionPop), ac = pN(d.acreage);
+  return <div>
+    <SH icon="📋" title="Deal Overview" subtitle="Acreage is required for productivity calculations." />
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "0 24px" }}>
+      <Field label="Project Name" aiDraft={ai.has("projectName")}><input style={iBase} value={d.projectName} onChange={e => s("projectName", e.target.value)} placeholder="e.g., Willow Creek Data Center" /></Field>
+      <Field label="Developer" aiDraft={ai.has("developer")}><input style={iBase} value={d.developer} onChange={e => s("developer", e.target.value)} placeholder="e.g., XYZ Development LLC" /></Field>
+      <Field label="Project Type" aiDraft={ai.has("projectType")}><select style={{ ...iBase, appearance: "auto" }} value={d.projectType} onChange={e => s("projectType", e.target.value)}><option value="">Select...</option>{["Residential","Commercial","Industrial","Mixed Use","Data Center","Retail","Office","Warehouse","Other"].map(t => <option key={t} value={t}>{t}</option>)}</select></Field>
+      <Field label="Project Acreage" sublabel="Required for per-acre analysis" aiDraft={ai.has("acreage")} lookups={[LOOKUPS.parcelSearch]}><NIn value={d.acreage} onChange={v => s("acreage", v)} placeholder="e.g., 45" suffix="ac" /></Field>
+      <Field label="Location" aiDraft={ai.has("location")}><input style={iBase} value={d.location} onChange={e => s("location", e.target.value)} placeholder="Address or area" /></Field>
+      <Field label="Estimated Project Value" aiDraft={ai.has("estimatedValue")} lookups={[LOOKUPS.parcelSearch]}><DIn value={d.estimatedValue} onChange={v => s("estimatedValue", v)} placeholder="50000000" /></Field>
+      <Field label="City Tax Rate" sublabel="Per $100 valuation" aiDraft={ai.has("cityTaxRate")} lookups={[LOOKUPS.taxRate]}><NIn value={d.cityTaxRate} onChange={v => s("cityTaxRate", v)} placeholder="e.g., 0.52" suffix="/$100" /></Field>
+      <Field label="Deal Date" sublabel="Date agreement was approved or signed"><input style={iBase} type="date" value={d.dealDate} onChange={e => s("dealDate", e.target.value)} /></Field>
+      <Field label="Population" sublabel="Current city/jurisdiction population" aiDraft={ai.has("jurisdictionPop")} lookups={[LOOKUPS.population]}><NIn value={d.jurisdictionPop} onChange={v => s("jurisdictionPop", v)} placeholder="7200" /></Field>
+      <Field label="Total Assessed Valuation" sublabel="Jurisdiction-wide" aiDraft={ai.has("existingTaxBase")} lookups={[LOOKUPS.taxBase, LOOKUPS.taxRate]}><DIn value={d.existingTaxBase} onChange={v => s("existingTaxBase", v)} placeholder="800000000" /></Field>
+      <Field label="Jurisdiction Total Acreage" sublabel="For avg productivity comparison" lookups={[LOOKUPS.nctcog]}><NIn value={d.jurisdictionAcreage} onChange={v => s("jurisdictionAcreage", v)} placeholder="e.g., 3200" suffix="ac" /></Field>
+    </div>
+    {pv > 0 && tb > 0 && <div style={{ display: "flex", gap: 16, marginTop: 8, flexWrap: "wrap" }}>
+      <CB label="% of Tax Base" value={((pv / tb) * 100).toFixed(1) + "%"} color={pv / tb > 0.1 ? B.yellow : B.green} sub={pv / tb > 0.1 ? ">10% concentration" : "< 10%"} />
+      {ac > 0 && <CB label="Value per Acre" value={fD(pv / ac)} color={B.indigo} />}
+      {pop > 0 && <CB label="Per Capita" value={fD(pv / pop)} color={B.indigo} />}
+    </div>}
+  </div>;
+}
+
+function IncentiveSec({ d, s, scores, ai }) {
+  const auto = calcTotal(d), eff = getEff(d), pv = pN(d.estimatedValue), abt = calcAbatement(d), ratio = pv > 0 && eff > 0 ? eff / pv : 0, ac = pN(d.acreage);
+  return <div>
+    <SH icon="💰" title="Incentive Structure" score={scores.incentive.score} max={scores.incentive.max} />
+    <GN>GFOA: define permissible tools, maximum amounts, time limits, eligible types. Verify funding does not exceed what is necessary.</GN>
+    <Field label="Incentive Types" wide aiDraft={ai.has("incentiveTypes")} lookups={[LOOKUPS.comptrollerAbatement, LOOKUPS.comptrollerCh380]}>
+      <Checks values={d.incentiveTypes} onChange={v => s("incentiveTypes", v)} options={[{value:"tax_abatement",label:"Ch. 312 Abatement"},{value:"ch380",label:"Ch. 380"},{value:"fee_waiver",label:"Fee Waivers"},{value:"infrastructure",label:"Infrastructure"},{value:"land",label:"Land"},{value:"tif",label:"TIF/TIRZ"},{value:"grants",label:"Grants"},{value:"other",label:"Other"}]} />
+    </Field>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "0 24px" }}>
+      <Field label="Abatement %" sublabel="% of property tax abated per agreement" aiDraft={ai.has("abatementPct")} lookups={[LOOKUPS.comptrollerAbatement]}><NIn value={d.abatementPct} onChange={v => s("abatementPct", v)} placeholder="75" suffix="%" /></Field>
+      <Field label="Duration" sublabel="Length of abatement period" aiDraft={ai.has("abatementYears")}><NIn value={d.abatementYears} onChange={v => s("abatementYears", v)} placeholder="10" suffix="yrs" /></Field>
+      <Field label="Fee Waivers" sublabel="Permit, impact, and connection fees waived" aiDraft={ai.has("feeWaivers")} lookups={[LOOKUPS.feeSchedule]}><DIn value={d.feeWaivers} onChange={v => s("feeWaivers", v)} placeholder="250000" /></Field>
+      <Field label="City Infra $" sublabel="City's infrastructure contribution to the project" aiDraft={ai.has("infraContribCity")}><DIn value={d.infraContribCity} onChange={v => s("infraContribCity", v)} placeholder="1500000" /></Field>
+      <Field label="Land $" sublabel="Market value of public land transferred to developer" aiDraft={ai.has("landContrib")}><DIn value={d.landContrib} onChange={v => s("landContrib", v)} placeholder="500000" /></Field>
+      <Field label="Grants" sublabel="Direct cash subsidies or grants from public funds" aiDraft={ai.has("grantAmount")}><DIn value={d.grantAmount} onChange={v => s("grantAmount", v)} placeholder="200000" /></Field>
+      <Field label="Other $" sublabel="Any other public incentives not listed above"><DIn value={d.otherIncentives} onChange={v => s("otherIncentives", v)} placeholder="100000" /></Field>
+      <Field label="Total Override" sublabel="Override auto-calc"><DIn value={d.totalIncentiveOverride} onChange={v => s("totalIncentiveOverride", v)} placeholder="Leave blank for auto" /></Field>
+    </div>
+    <div style={{ display: "flex", gap: 16, marginTop: 8, flexWrap: "wrap" }}>
+      <CB label="Total (calc)" value={fD(auto)} color={B.indigo} sub={abt > 0 ? `Abatement: ${fD(abt)}` : "Enter rate + % + yrs"} />
+      {ratio > 0 && <CB label="Incentive Ratio" value={(ratio * 100).toFixed(1) + "%"} color={ratio > 0.25 ? B.red : ratio > 0.1 ? B.yellow : B.green} />}
+      {ac > 0 && eff > 0 && <CB label="Incentive/Acre" value={fD(eff / ac)} color={B.poppy} />}
+    </div>
+  </div>;
+}
+
+function MarketSec({ d, s, scores, ai }) {
+  const mk = scores.market;
+  return <div>
+    <SH icon="📈" title="Market Evidence" subtitle="Empirical data replacing 'but-for' opinion. All fields are publicly verifiable." score={mk.score} max={mk.max} />
+    <GN>GFOA: incentives exist to induce activity that would not otherwise occur. Feasibility studies should determine whether development could proceed without assistance. All data below should be documented and verifiable.</GN>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "0 24px" }}>
+      <Field label="Submarket Vacancy Rate" sublabel="For this use type at this location"><NIn value={d.submarketVacancy} onChange={v => s("submarketVacancy", v)} placeholder="e.g., 12.5" suffix="%" /></Field>
+      <Field label="Comparable Sale Price" sublabel="Recent comparable $/SF for this use" lookups={[LOOKUPS.parcelSearch]}><NIn value={d.comparableSalePSF} onChange={v => s("comparableSalePSF", v)} placeholder="e.g., 185" suffix="$/SF" /></Field>
+      <Field label="Months of Inventory" sublabel="Absorption rate for this use type"><NIn value={d.monthsOfInventory} onChange={v => s("monthsOfInventory", v)} placeholder="e.g., 14" suffix="mo" /></Field>
+      <Field label="Documented Site Cost Premium" sublabel="Remediation, geotech, flood — $ above comparable" lookups={[LOOKUPS.parcelSearch]}><DIn value={d.siteCostPremium} onChange={v => s("siteCostPremium", v)} placeholder="e.g., 750000" /></Field>
+      <Field label="Competing Jurisdictions" sublabel="Number of jurisdictions with documented competing bids" lookups={[LOOKUPS.nctcog]}><NIn value={d.competingJurisdictions} onChange={v => s("competingJurisdictions", v)} placeholder="e.g., 3" /></Field>
+      <Field label="Independent Feasibility Study" sublabel="Has developer provided one?" wide>
+        <Radio name="feasibility" value={d.hasFeasibilityStudy} onChange={v => s("hasFeasibilityStudy", v)} options={[{value:"yes",label:"Yes — on file"},{value:"no",label:"No"},{value:"requested",label:"Requested, not received"}]} />
+      </Field>
+      <Field label="Financial Disclosure" sublabel="Developer financial capacity documented?" wide>
+        <Radio name="disclosure" value={d.hasFinancialDisclosure} onChange={v => s("hasFinancialDisclosure", v)} options={[{value:"yes",label:"Yes — on file"},{value:"no",label:"No"},{value:"partial",label:"Partial"}]} />
+      </Field>
+    </div>
+    {/* Calculated but-for conclusion */}
+    <div style={{ padding: "16px", background: B.sand, borderRadius: 6, marginTop: 12, fontSize: 13, lineHeight: 1.6 }}>
+      <strong style={{ color: B.indigo }}>Calculated Market Evidence Assessment:</strong>
+      {pN(d.submarketVacancy) > 15 ? <div>• High vacancy ({d.submarketVacancy}%) — weak market supports incentive justification</div> : pN(d.submarketVacancy) > 0 ? <div>• Vacancy at {d.submarketVacancy}% — {pN(d.submarketVacancy) < 5 ? "very tight market questions incentive necessity" : "moderate vacancy"}</div> : null}
+      {pN(d.monthsOfInventory) > 18 ? <div>• {d.monthsOfInventory} months inventory — slow absorption supports incentive case</div> : pN(d.monthsOfInventory) > 0 ? <div>• {d.monthsOfInventory} months inventory — {pN(d.monthsOfInventory) < 6 ? "strong absorption weakens incentive case" : "moderate absorption"}</div> : null}
+      {pN(d.siteCostPremium) > 0 && <div>• {fD(pN(d.siteCostPremium))} documented site premium supports cost gap argument</div>}
+      {d.hasFeasibilityStudy === "no" && <div style={{ color: B.red }}>• No feasibility study provided — GFOA requires independent verification</div>}
+      {d.hasFinancialDisclosure === "no" && <div style={{ color: B.red }}>• No financial disclosure — developer capacity unverified</div>}
+    </div>
+  </div>;
+}
+
+function InfraCapSec({ d, s, scores, ai }) {
+  const inf = scores.infrastructure;
+  const wCap = pN(d.waterCapacityGPD), wCur = pN(d.waterCurrentGPD), wDem = pN(d.waterDemandGPD);
+  const sCap = pN(d.sewerCapacityGPD), sCur = pN(d.sewerCurrentGPD), sDem = pN(d.sewerDemandGPD);
+  const pAvail = pN(d.powerAvailableMW), pDem = pN(d.powerDemandMW);
+  const ac = pN(d.acreage), totalInfra = pN(d.infraCostEst), devContrib = pN(d.developerInfraContrib);
+  const deferred = pN(d.deferredMaintenanceBacklog);
+  const lifecycle30 = totalInfra * 3.5;
+  const unfunded = lifecycle30 - devContrib;
+
+  return <div>
+    <SH icon="🏗️" title="Infrastructure Capacity & Risk Exposure" subtitle="Empirical capacity data — all from public utility reports and city documents." score={inf.score} max={inf.max} />
+    <GN>GFOA: estimate full lifecycle costs, impact on existing assets, and additional burden from new development. Deferred maintenance costs 4–5× more in emergency repairs.</GN>
+    <h3 style={{ fontSize: 14, fontWeight: 700, color: B.indigo, margin: "16px 0 10px" }}>Water System</h3>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "0 24px" }}>
+      <Field label="Plant Capacity" sublabel="Rated treatment capacity in gallons per day" lookups={[LOOKUPS.tceqWater, LOOKUPS.tceqCCR]}><NIn value={d.waterCapacityGPD} onChange={v => s("waterCapacityGPD", v)} placeholder="e.g., 2000000" suffix="GPD" /></Field>
+      <Field label="Current Demand" sublabel="Average daily water usage system-wide" lookups={[LOOKUPS.tceqCCR, LOOKUPS.cityBudget]}><NIn value={d.waterCurrentGPD} onChange={v => s("waterCurrentGPD", v)} placeholder="e.g., 1400000" suffix="GPD" /></Field>
+      <Field label="Project Demand" sublabel="Estimated daily water use from this project" aiDraft={ai.has("waterDemandGPD")}><NIn value={d.waterDemandGPD} onChange={v => s("waterDemandGPD", v)} placeholder="e.g., 300000" suffix="GPD" /></Field>
+    </div>
+    {wCap > 0 && <div style={{ display: "flex", gap: 16, marginTop: 4, marginBottom: 12, flexWrap: "wrap" }}>
+      <CB label="Current Util." value={((wCur / wCap) * 100).toFixed(0) + "%"} color={wCur / wCap > 0.85 ? B.red : wCur / wCap > 0.75 ? B.yellow : B.green} />
+      <CB label="Post-Project" value={(((wCur + wDem) / wCap) * 100).toFixed(0) + "%"} color={(wCur + wDem) / wCap > 0.85 ? B.red : (wCur + wDem) / wCap > 0.75 ? B.yellow : B.green} sub={(wCur + wDem) > wCap ? "EXCEEDS CAPACITY" : ""} />
+      <CB label="Remaining" value={((wCap - wCur - wDem) / 1000).toFixed(0) + "k GPD"} color={(wCap - wCur - wDem) < 0 ? B.red : B.green} />
+    </div>}
+
+    <h3 style={{ fontSize: 14, fontWeight: 700, color: B.indigo, margin: "16px 0 10px" }}>Sewer System</h3>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "0 24px" }}>
+      <Field label="Plant Capacity" sublabel="Rated wastewater treatment capacity" lookups={[LOOKUPS.tceqWater]}><NIn value={d.sewerCapacityGPD} onChange={v => s("sewerCapacityGPD", v)} placeholder="e.g., 1500000" suffix="GPD" /></Field>
+      <Field label="Current Flow" sublabel="Average daily wastewater flow" lookups={[LOOKUPS.cityBudget]}><NIn value={d.sewerCurrentGPD} onChange={v => s("sewerCurrentGPD", v)} placeholder="e.g., 1000000" suffix="GPD" /></Field>
+      <Field label="Project Demand" sublabel="Estimated daily wastewater from this project" aiDraft={ai.has("sewerDemandGPD")}><NIn value={d.sewerDemandGPD} onChange={v => s("sewerDemandGPD", v)} placeholder="e.g., 200000" suffix="GPD" /></Field>
+    </div>
+    {sCap > 0 && <div style={{ display: "flex", gap: 16, marginTop: 4, marginBottom: 12, flexWrap: "wrap" }}>
+      <CB label="Current Util." value={((sCur / sCap) * 100).toFixed(0) + "%"} color={sCur / sCap > 0.85 ? B.red : sCur / sCap > 0.75 ? B.yellow : B.green} />
+      <CB label="Post-Project" value={(((sCur + sDem) / sCap) * 100).toFixed(0) + "%"} color={(sCur + sDem) / sCap > 0.85 ? B.red : (sCur + sDem) / sCap > 0.75 ? B.yellow : B.green} />
+    </div>}
+
+    <h3 style={{ fontSize: 14, fontWeight: 700, color: B.indigo, margin: "16px 0 10px" }}>Power & Roads</h3>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "0 24px" }}>
+      <Field label="Available Power Capacity" sublabel="Substation/grid capacity at this location" lookups={[{ label: "Oncor / ERCOT", url: "https://www.oncor.com/" }]}><NIn value={d.powerAvailableMW} onChange={v => s("powerAvailableMW", v)} placeholder="e.g., 50" suffix="MW" /></Field>
+      <Field label="Project Power Demand" sublabel="Project's expected electrical load" aiDraft={ai.has("powerDemandMW")}><NIn value={d.powerDemandMW} onChange={v => s("powerDemandMW", v)} placeholder="e.g., 20" suffix="MW" /></Field>
+      <Field label="Road Lane-Miles Required" sublabel="New or widened lane-miles for project access" aiDraft={ai.has("roadLaneMiles")} lookups={[LOOKUPS.txdotCosts]}><NIn value={d.roadLaneMiles} onChange={v => s("roadLaneMiles", v)} placeholder="e.g., 2.5" suffix="mi" /></Field>
+      <Field label="Cost per Lane-Mile" sublabel="Construction cost per lane-mile in this area" lookups={[LOOKUPS.txdotCosts]}><DIn value={d.roadCostPerMile} onChange={v => s("roadCostPerMile", v)} placeholder="e.g., 3500000" /></Field>
+    </div>
+
+    <h3 style={{ fontSize: 14, fontWeight: 700, color: B.indigo, margin: "16px 0 10px" }}>Cost & Funding</h3>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "0 24px" }}>
+      <Field label="Total Infrastructure Cost Est." sublabel="Combined roads, water, sewer, drainage" lookups={[LOOKUPS.cityBudget]}><DIn value={d.infraCostEst} onChange={v => s("infraCostEst", v)} placeholder="3000000" /></Field>
+      <Field label="Deferred Maintenance Backlog" sublabel="Existing city infrastructure backlog" lookups={[LOOKUPS.cityBudget]}><DIn value={d.deferredMaintenanceBacklog} onChange={v => s("deferredMaintenanceBacklog", v)} placeholder="e.g., 5000000" /></Field>
+      <Field label="Developer Infrastructure Contribution" sublabel="Developer's committed $ toward infrastructure"><DIn value={d.developerInfraContrib} onChange={v => s("developerInfraContrib", v)} placeholder="e.g., 2000000" /></Field>
+      <Field label="Funding Source" sublabel="Who is primarily responsible for infrastructure costs" wide>
+        <Radio name="infraF" value={d.infraFundingSource} onChange={v => s("infraFundingSource", v)} options={[{value:"developer",label:"Developer"},{value:"shared",label:"Shared"},{value:"city",label:"City"},{value:"mud",label:"MUD"}]} />
+      </Field>
+    </div>
+    {totalInfra > 0 && <div style={{ display: "flex", gap: 16, marginTop: 8, flexWrap: "wrap" }}>
+      <CB label="30-Yr Lifecycle" value={fD(lifecycle30)} color={B.yellow} sub="3.5× initial (GFOA)" />
+      <CB label="Unfunded Gap" value={fD(Math.max(0, unfunded))} color={unfunded > 0 ? B.red : B.green} sub={unfunded > 0 ? "Lifecycle cost minus developer $" : "Fully funded"} />
+      {ac > 0 && <CB label="Infra Cost/Acre" value={fD(totalInfra / ac)} color={B.indigo} />}
+      {ac > 0 && <CB label="Lifecycle/Acre (30yr)" value={fD(lifecycle30 / ac)} color={B.yellow} />}
+      {deferred > 0 && <CB label="Backlog + New" value={fD(deferred + totalInfra)} color={B.red} sub="Total infra burden" />}
+    </div>}
+  </div>;
+}
+
+function PerfSec({ d, s, scores, ai }) {
+  const fte = pN(d.jobsFTE), eff = getEff(d), ac = pN(d.acreage);
+  const cpj = fte > 0 && eff > 0 ? eff / fte : 0;
+  const wage = pN(d.wageAnnual), median = pN(d.areaMedianWage);
+  const wagePrem = median > 0 && wage > 0 ? ((wage - median) / median) * 100 : 0;
+  const totalPayroll = fte > 0 && wage > 0 ? fte * wage : 0;
+  const capMin = pN(d.capitalInvestMin);
+  const capPerJob = fte > 0 && capMin > 0 ? capMin / fte : 0;
+  const clawPct = pN(d.clawbackPct);
+  const maxRecoverable = eff > 0 && clawPct > 0 ? eff * (clawPct / 100) : 0;
+  const mCount = pN(d.milestoneCount), cDeadline = pN(d.completionDeadlineYrs);
+  const mDensity = cDeadline > 0 && mCount > 0 ? mCount / cDeadline : 0;
+
+  return <div>
+    <SH icon="📐" title="Performance & Accountability" subtitle="Every field feeds a formula. No opinion inputs." score={scores.performance.score} max={scores.performance.max} />
+    <GN>GFOA: performance standards must be specific and quantitative — with enforceable clawback, frequent reporting, and measurable benchmarks. This section scores against calculated thresholds, not presence checks.</GN>
+
+    <h3 style={{ fontSize: 14, fontWeight: 700, color: B.indigo, margin: "16px 0 10px" }}>Employment Commitment</h3>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "0 24px" }}>
+      <Field label="FTEs Committed" sublabel="Full-time equivalent jobs required by agreement" aiDraft={ai.has("jobsFTE")}><NIn value={d.jobsFTE} onChange={v => s("jobsFTE", v)} placeholder="e.g., 150" suffix="FTE" /></Field>
+      <Field label="Job Creation Deadline" sublabel="Years to reach full employment target"><NIn value={d.jobsDeadlineYrs} onChange={v => s("jobsDeadlineYrs", v)} placeholder="e.g., 3" suffix="yrs" /></Field>
+      <Field label="Required Annual Wage" sublabel="Minimum per-employee compensation in agreement" aiDraft={ai.has("wageAnnual")} lookups={[LOOKUPS.bls]}><DIn value={d.wageAnnual} onChange={v => s("wageAnnual", v)} placeholder="e.g., 65000" /></Field>
+      <Field label="Area Median Wage" sublabel="BLS area median for comparison" lookups={[LOOKUPS.bls]}><DIn value={d.areaMedianWage} onChange={v => s("areaMedianWage", v)} placeholder="e.g., 52000" /></Field>
+    </div>
+    {(cpj > 0 || wagePrem !== 0 || totalPayroll > 0) && <div style={{ display: "flex", gap: 16, marginTop: 8, marginBottom: 16, flexWrap: "wrap" }}>
+      {cpj > 0 && <CB label="Cost per Job" value={fD(cpj)} color={cpj < 15000 ? B.green : cpj < 30000 ? B.yellow : B.red} sub={cpj < 15000 ? "Strong — under $15k/job" : cpj < 30000 ? "Moderate — $15-30k/job" : "High — over $30k/job"} />}
+      {wagePrem !== 0 && median > 0 && <CB label="Wage Premium" value={wagePrem.toFixed(0) + "% vs median"} color={wagePrem >= 20 ? B.green : wagePrem >= 0 ? B.yellow : B.red} sub={wagePrem >= 20 ? "20%+ above area median" : wagePrem >= 0 ? "At or above median" : "Below area median"} />}
+      {totalPayroll > 0 && <CB label="Annual Payroll Impact" value={fD(totalPayroll)} color={B.indigo} sub={fte + " FTEs × " + fD(wage)} />}
+      {fte > 0 && ac > 0 && <CB label="Jobs per Acre" value={(fte / ac).toFixed(1)} color={B.indigo} />}
+    </div>}
+
+    <h3 style={{ fontSize: 14, fontWeight: 700, color: B.indigo, margin: "16px 0 10px" }}>Capital Investment</h3>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "0 24px" }}>
+      <Field label="Min Capital Investment" sublabel="Minimum $ developer must invest per agreement" aiDraft={ai.has("capitalInvestMin")}><DIn value={d.capitalInvestMin} onChange={v => s("capitalInvestMin", v)} placeholder="e.g., 25000000" /></Field>
+    </div>
+    {capMin > 0 && <div style={{ display: "flex", gap: 16, marginTop: 8, marginBottom: 16, flexWrap: "wrap" }}>
+      {eff > 0 && <CB label="Incentive-to-Capital" value={((eff / capMin) * 100).toFixed(1) + "%"} color={eff / capMin < 0.1 ? B.green : eff / capMin < 0.25 ? B.yellow : B.red} sub="Total incentive as % of capital" />}
+      {capPerJob > 0 && <CB label="Capital per Job" value={fD(capPerJob)} color={capPerJob >= 200000 ? B.green : capPerJob >= 100000 ? B.yellow : B.red} sub={capPerJob >= 200000 ? "Strong commitment per FTE" : "Moderate"} />}
+      {ac > 0 && <CB label="Capital per Acre" value={fD(capMin / ac)} color={B.indigo} />}
+    </div>}
+
+    <h3 style={{ fontSize: 14, fontWeight: 700, color: B.indigo, margin: "16px 0 10px" }}>Enforcement & Monitoring</h3>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "0 24px" }}>
+      <Field label="Clawback Provision" sublabel="Can the city recover incentives if terms aren't met?" wide aiDraft={ai.has("hasClawback")}><Radio name="claw" value={d.hasClawback} onChange={v => s("hasClawback", v)} options={[{value:"yes",label:"Full recapture"},{value:"partial",label:"Partial"},{value:"no",label:"None"}]} /></Field>
+      <Field label="Clawback Recovery %" sublabel="Maximum % of incentive that can be recaptured"><NIn value={d.clawbackPct} onChange={v => s("clawbackPct", v)} placeholder="e.g., 100" suffix="%" /></Field>
+      <Field label="Reporting Frequency" sublabel="How often developer must report compliance to city" wide><Radio name="rep" value={d.reportingFrequency} onChange={v => s("reportingFrequency", v)} options={[{value:"quarterly",label:"Quarterly"},{value:"annual",label:"Annual"},{value:"none",label:"None required"}]} /></Field>
+      <Field label="Performance Milestones" sublabel="Number of defined checkpoints in the agreement"><NIn value={d.milestoneCount} onChange={v => s("milestoneCount", v)} placeholder="e.g., 5" /></Field>
+      <Field label="Completion Deadline" sublabel="Years to full project completion"><NIn value={d.completionDeadlineYrs} onChange={v => s("completionDeadlineYrs", v)} placeholder="e.g., 5" suffix="yrs" /></Field>
+      <Field label="Notes" sublabel="Notable gaps, vague language, or enforcement concerns" wide><textarea style={{ ...iBase, minHeight: 50, resize: "vertical" }} value={d.performanceNotes} onChange={e => s("performanceNotes", e.target.value)} placeholder="Vague language, enforcement gaps..." /></Field>
+    </div>
+    {(maxRecoverable > 0 || mDensity > 0) && <div style={{ display: "flex", gap: 16, marginTop: 8, flexWrap: "wrap" }}>
+      {maxRecoverable > 0 && <CB label="Max Recoverable" value={fD(maxRecoverable)} color={clawPct >= 80 ? B.green : clawPct >= 50 ? B.yellow : B.red} sub={clawPct + "% of " + fD(eff) + " total incentive"} />}
+      {mDensity > 0 && <CB label="Milestone Density" value={mDensity.toFixed(1) + "/yr"} color={mDensity >= 2 ? B.green : mDensity >= 1 ? B.yellow : B.red} sub={mCount + " milestones over " + cDeadline + " years"} />}
+    </div>}
+  </div>;
+}
+
+function ProductivitySec({ d, scores }) {
+  const ac = pN(d.acreage), pv = pN(d.estimatedValue), rv = pN(d.projectedRevAnnual), co = pN(d.projectedCostAnnual);
+  const eff = getEff(d), net = rv - co, totalInfra = pN(d.infraCostEst);
+  const jAc = pN(d.jurisdictionAcreage), tb = pN(d.existingTaxBase);
+  const jAvgVPA = jAc > 0 && tb > 0 ? tb / jAc : 0;
+  const projVPA = ac > 0 && pv > 0 ? pv / ac : 0;
+  const autoPB = net > 0 && eff > 0 ? Math.ceil(eff / net) : 0;
+  const uPB = pN(d.paybackYears); const dPB = uPB > 0 ? uPB : autoPB;
+
+  if (ac === 0) return <div><SH icon="📊" title="Fiscal Productivity per Acre" /><div style={{ padding: 24, textAlign: "center", color: B.gray, fontSize: 14 }}>Enter project acreage in the Overview section to unlock per-acre analysis.</div></div>;
+
+  return <div>
+    <SH icon="📊" title="Fiscal Productivity per Acre" subtitle="Urban3/Strong Towns methodology — normalized to the city's average to enable apples-to-apples comparison." />
+    <GN>Value per acre normalizes fiscal productivity across land uses. GFOA recommends cost-benefit analysis comparing incentive cost against projected benefits and evaluating impact on the existing tax base.</GN>
+
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "0 24px", marginBottom: 12 }}>
+      <Field label="Annual Revenue at Stabilization" sublabel="Property tax + sales tax + fees" lookups={[LOOKUPS.cityBudget, LOOKUPS.taxRate]}><DIn value={d.projectedRevAnnual} onChange={() => {}} placeholder="Enter in Incentives section" /></Field>
+      <Field label="Annual Service Cost" sublabel="Roads, water, police, fire, admin" lookups={[LOOKUPS.cityBudget]}><DIn value={d.projectedCostAnnual} onChange={() => {}} placeholder="Enter in Incentives section" /></Field>
+    </div>
+
+    <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
+      <CB label="Assessed Value/Acre" value={fD(projVPA)} color={B.indigo} sub={jAvgVPA > 0 ? `City avg: ${fD(jAvgVPA)}/ac` : ""} />
+      {rv > 0 && <CB label="Revenue/Acre" value={fD(rv / ac)} color={B.green} />}
+      {co > 0 && <CB label="Cost/Acre" value={fD(co / ac)} color={B.red} />}
+      {rv > 0 && co > 0 && <CB label="Net Productivity/Acre" value={fD(net / ac)} color={net >= 0 ? B.green : B.red} sub={net >= 0 ? "Revenue exceeds cost" : "Cost exceeds revenue"} />}
+    </div>
+
+    {jAvgVPA > 0 && projVPA > 0 && <div style={{ padding: 16, background: projVPA / jAvgVPA >= 1 ? B.green + "0A" : B.red + "0A", border: `1px solid ${projVPA / jAvgVPA >= 1 ? B.green : B.red}20`, borderRadius: 6, marginBottom: 16 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: projVPA / jAvgVPA >= 1 ? B.green : B.red }}>Productivity Ratio: {(projVPA / jAvgVPA).toFixed(2)}x city average</div>
+      <div style={{ fontSize: 12, color: B.gray, marginTop: 4 }}>{projVPA / jAvgVPA >= 1 ? "This project's assessed value per acre meets or exceeds the jurisdiction average." : "This project is less fiscally productive per acre than the jurisdiction average."}</div>
+    </div>}
+
+    <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
+      {eff > 0 && <CB label="Incentive/Acre" value={fD(eff / ac)} color={B.poppy} />}
+      {totalInfra > 0 && <CB label="Infra Cost/Acre" value={fD(totalInfra / ac)} color={B.yellow} />}
+      {totalInfra > 0 && <CB label="30-Yr Lifecycle/Acre" value={fD(totalInfra * 3.5 / ac)} color={B.yellow} sub="3.5× initial" />}
+      {pN(d.jobsFTE) > 0 && <CB label="Jobs/Acre" value={(pN(d.jobsFTE) / ac).toFixed(1)} color={B.indigo} />}
+    </div>
+
+    {rv > 0 && co > 0 && eff > 0 && <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+      <CB label="Rev:Cost Ratio" value={(rv / co).toFixed(2) + "x"} color={rv / co >= 1.25 ? B.green : rv / co >= 1 ? B.yellow : B.red} />
+      {dPB > 0 && <CB label="Payback" value={dPB + " yrs"} color={dPB <= 5 ? B.green : dPB <= 10 ? B.yellow : B.red} sub={uPB > 0 ? "User entered" : "Incentive ÷ net annual"} />}
+      <CB label="10-Yr Net" value={fD(net * 10 - eff)} color={(net * 10 - eff) >= 0 ? B.green : B.red} />
+    </div>}
+  </div>;
+}
+
+function ReportSec({ d, scores, onReset, aiCount }) {
+  const t = scores.total, p = t.max > 0 ? t.score / t.max : 0, grade = pctL(p), gc = pctC(p);
+  const eff = getEff(d), rv = pN(d.projectedRevAnnual), co = pN(d.projectedCostAnnual), net = rv - co, ac = pN(d.acreage);
+  const flags = [], strengths = [];
+  if (d.hasClawback === "no") flags.push("No clawback provisions");
+  if (d.hasClawback !== "" && pN(d.clawbackPct) > 0 && pN(d.clawbackPct) < 50) flags.push("Clawback recovery only " + d.clawbackPct + "% — weak recapture");
+  if (d.reportingFrequency === "none") flags.push("No reporting requirement");
+  const rfte = pN(d.jobsFTE), reff = getEff(d);
+  if (rfte > 0 && reff > 0 && reff / rfte > 30000) flags.push("Cost per job (" + fD(reff / rfte) + ") exceeds $30k threshold");
+  const rwage = pN(d.wageAnnual), rmedian = pN(d.areaMedianWage);
+  if (rwage > 0 && rmedian > 0 && rwage < rmedian) flags.push("Required wage (" + fD(rwage) + ") is below area median (" + fD(rmedian) + ")");
+  if (pN(d.milestoneCount) === 0 && pN(d.completionDeadlineYrs) > 0) flags.push("Completion deadline set but no performance milestones defined");
+  if (d.hasFeasibilityStudy === "no") flags.push("No independent feasibility study — GFOA requires verification");
+  if (d.hasFinancialDisclosure === "no") flags.push("No developer financial disclosure");
+  if (pN(d.submarketVacancy) > 0 && pN(d.submarketVacancy) < 5) flags.push("Very low vacancy (" + d.submarketVacancy + "%) questions incentive necessity");
+  if (d.infraFundingSource === "city") flags.push("Infrastructure fully publicly funded");
+  if (pN(d.abatementYears) > 10) flags.push("Abatement exceeds 10-yr guideline");
+  if (rv > 0 && co > 0 && net < 0) flags.push("Service cost exceeds projected revenue");
+  const wCap = pN(d.waterCapacityGPD), wCur = pN(d.waterCurrentGPD), wDem = pN(d.waterDemandGPD);
+  if (wCap > 0 && (wCur + wDem) > wCap) flags.push("Project would exceed water system capacity");
+  const sCap = pN(d.sewerCapacityGPD), sCur = pN(d.sewerCurrentGPD), sDem = pN(d.sewerDemandGPD);
+  if (sCap > 0 && (sCur + sDem) > sCap) flags.push("Project would exceed sewer capacity");
+  if (eff > 0 && pN(d.estimatedValue) > 0 && eff / pN(d.estimatedValue) > 0.25) flags.push("Incentive ratio exceeds 25%");
+  const totalInfra = pN(d.infraCostEst), devContrib = pN(d.developerInfraContrib);
+  if (totalInfra > 0 && devContrib / totalInfra < 0.25) flags.push("Developer covers <25% of infrastructure cost");
+
+  if (d.hasClawback === "yes" && pN(d.clawbackPct) >= 80) strengths.push("Full clawback at " + d.clawbackPct + "% recovery");
+  else if (d.hasClawback === "yes") strengths.push("Full clawback provisions");
+  if (d.reportingFrequency === "quarterly") strengths.push("Quarterly performance reporting");
+  const sfte = pN(d.jobsFTE), seff = getEff(d);
+  if (sfte > 0 && seff > 0 && seff / sfte < 15000) strengths.push("Cost per job under $15k (" + fD(seff / sfte) + ")");
+  const swage = pN(d.wageAnnual), smedian = pN(d.areaMedianWage);
+  if (swage > 0 && smedian > 0 && (swage - smedian) / smedian >= 0.2) strengths.push("Wage premium " + (((swage - smedian) / smedian) * 100).toFixed(0) + "% above area median");
+  if (d.infraFundingSource === "developer") strengths.push("Developer-funded infrastructure");
+  if (d.hasFeasibilityStudy === "yes") strengths.push("Independent feasibility study on file");
+  if (pN(d.submarketVacancy) > 15) strengths.push("High vacancy (" + d.submarketVacancy + "%) supports incentive case");
+  if (rv > 0 && co > 0 && net > 0) strengths.push("Positive net fiscal: " + fD(net) + "/yr");
+  if (wCap > 0 && (wCur + wDem) / wCap < 0.75) strengths.push("Water utilization stays below 75%");
+  if (totalInfra > 0 && devContrib / totalInfra >= 0.8) strengths.push("Developer funds 80%+ of infrastructure");
+
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const { jsPDF } = await loadJsPdf();
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
+      const W = 612, H = 792; // US Letter in points
+      const ML = 54, MR = 54, MT = 54; // margins
+      const CW = W - ML - MR; // content width
+      let Y = MT;
+
+      // Colors
+      const cIndigo = [51, 66, 92], cPoppy = [217, 56, 51], cJet = [55, 52, 53];
+      const cGreen = [45, 122, 79], cYellow = [197, 148, 10], cRed = [192, 57, 43];
+      const cGray = [138, 135, 134], cGrayL = [213, 210, 205], cSand = [240, 236, 228];
+
+      const checkPage = (needed) => { if (Y + needed > H - 60) { pdf.addPage(); Y = MT; return true; } return false; };
+
+      // ── HEADER BAR ──
+      pdf.setFillColor(...cIndigo);
+      pdf.rect(0, 0, W, 80, "F");
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(10); pdf.setFont("helvetica", "normal");
+      pdf.text("THE CITIZEN — CIVIC TOOLKIT", ML, 30);
+      pdf.setFontSize(22); pdf.setFont("helvetica", "bold");
+      pdf.text("Development Deal Evaluation Report", ML, 55);
+      pdf.setFontSize(9); pdf.setFont("helvetica", "normal");
+      pdf.text(new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }), W - MR, 30, { align: "right" });
+      Y = 100;
+
+      // ── PROJECT INFO ──
+      pdf.setTextColor(...cJet);
+      if (d.projectName) { pdf.setFontSize(16); pdf.setFont("helvetica", "bold"); pdf.text(d.projectName, ML, Y); Y += 18; }
+      if (d.developer) { pdf.setFontSize(11); pdf.setFont("helvetica", "normal"); pdf.setTextColor(...cGray); pdf.text(d.developer, ML, Y); Y += 14; }
+      const infoLine = [d.projectType, d.location, ac > 0 ? d.acreage + " acres" : ""].filter(Boolean).join("  ·  ");
+      if (infoLine) { pdf.setFontSize(9); pdf.text(infoLine, ML, Y); Y += 14; }
+      if (pN(d.estimatedValue) > 0) { pdf.setFontSize(9); pdf.text("Estimated Project Value: " + fD(pN(d.estimatedValue)), ML, Y); Y += 14; }
+      Y += 6;
+
+      // ── OVERALL GRADE BOX ──
+      const gradeC = p >= 0.7 ? cGreen : p >= 0.4 ? cYellow : cRed;
+      pdf.setFillColor(gradeC[0], gradeC[1], gradeC[2], 0.06);
+      pdf.setDrawColor(...gradeC);
+      pdf.roundedRect(ML, Y, CW, 60, 4, 4, "FD");
+      pdf.setTextColor(...gradeC);
+      pdf.setFontSize(28); pdf.setFont("helvetica", "bold");
+      pdf.text(grade, W / 2, Y + 28, { align: "center" });
+      pdf.setFontSize(12); pdf.setFont("helvetica", "normal");
+      pdf.text(t.score + " / " + t.max + " points", W / 2, Y + 46, { align: "center" });
+      Y += 76;
+
+      // ── KEY FINANCIALS ROW ──
+      if (eff > 0 || (rv > 0 && co > 0)) {
+        const metrics = [];
+        if (eff > 0) metrics.push({ label: "Total Public Commitment", value: fD(eff), color: cPoppy });
+        if (rv > 0 && co > 0) metrics.push({ label: "Net Annual Impact", value: (net >= 0 ? "+" : "") + fD(net) + "/yr", color: net >= 0 ? cGreen : cRed });
+        if (ac > 0 && rv > 0 && co > 0) metrics.push({ label: "Net per Acre", value: fD(net / ac), color: net >= 0 ? cGreen : cRed });
+        if (net > 0 && eff > 0) metrics.push({ label: "10-Year Net", value: fD(net * 10 - eff), color: (net * 10 - eff) >= 0 ? cGreen : cRed });
+
+        const bw = (CW - (metrics.length - 1) * 8) / metrics.length;
+        metrics.forEach((m, i) => {
+          const bx = ML + i * (bw + 8);
+          pdf.setFillColor(m.color[0], m.color[1], m.color[2], 0.06);
+          pdf.roundedRect(bx, Y, bw, 42, 3, 3, "F");
+          pdf.setTextColor(...cGray); pdf.setFontSize(7); pdf.setFont("helvetica", "bold");
+          pdf.text(m.label.toUpperCase(), bx + 8, Y + 14);
+          pdf.setTextColor(...m.color); pdf.setFontSize(14); pdf.setFont("helvetica", "bold");
+          pdf.text(m.value, bx + 8, Y + 33);
+        });
+        Y += 54;
+      }
+
+      // ── SECTION SCORES ──
+      checkPage(120);
+      pdf.setTextColor(...cIndigo); pdf.setFontSize(11); pdf.setFont("helvetica", "bold");
+      pdf.text("SECTION SCORES", ML, Y); Y += 16;
+
+      const secs = [
+        { label: "Incentive Structure", s: scores.incentive },
+        { label: "Fiscal Impact", s: scores.fiscal },
+        { label: "Market Evidence", s: scores.market },
+        { label: "Infrastructure Capacity", s: scores.infrastructure },
+        { label: "Performance & Accountability", s: scores.performance },
+      ];
+      secs.forEach(sec => {
+        const pct = sec.s.max > 0 ? sec.s.score / sec.s.max : 0;
+        const sc = pct >= 0.7 ? cGreen : pct >= 0.4 ? cYellow : cRed;
+        // Label
+        pdf.setTextColor(...cJet); pdf.setFontSize(9); pdf.setFont("helvetica", "normal");
+        pdf.text(sec.label, ML, Y + 8);
+        // Score
+        pdf.setTextColor(...sc); pdf.setFont("helvetica", "bold");
+        pdf.text(sec.s.score + "/" + sec.s.max, W - MR, Y + 8, { align: "right" });
+        // Bar background
+        pdf.setFillColor(...cSand);
+        pdf.roundedRect(ML, Y + 12, CW, 6, 2, 2, "F");
+        // Bar fill
+        pdf.setFillColor(...sc);
+        if (pct > 0) pdf.roundedRect(ML, Y + 12, Math.max(CW * pct, 4), 6, 2, 2, "F");
+        Y += 24;
+      });
+      Y += 8;
+
+      // ── PERFORMANCE METRICS ──
+      const xfte = pN(d.jobsFTE), xeff = getEff(d);
+      if (xfte > 0 || pN(d.capitalInvestMin) > 0) {
+        checkPage(90);
+        pdf.setTextColor(...cIndigo); pdf.setFontSize(11); pdf.setFont("helvetica", "bold");
+        pdf.text("PERFORMANCE METRICS", ML, Y); Y += 16;
+        pdf.setTextColor(...cJet); pdf.setFontSize(9); pdf.setFont("helvetica", "normal");
+        if (xfte > 0) { pdf.text("FTEs Committed: " + d.jobsFTE, ML, Y); Y += 13; }
+        if (xfte > 0 && xeff > 0) { pdf.text("Cost per Job: " + fD(xeff / xfte), ML, Y); Y += 13; }
+        const xw = pN(d.wageAnnual), xm = pN(d.areaMedianWage);
+        if (xw > 0 && xm > 0) { pdf.text("Wage Premium: " + (((xw - xm) / xm) * 100).toFixed(0) + "% vs area median", ML, Y); Y += 13; }
+        if (xw > 0 && xfte > 0) { pdf.text("Annual Payroll Impact: " + fD(xw * xfte), ML, Y); Y += 13; }
+        if (pN(d.capitalInvestMin) > 0 && xfte > 0) { pdf.text("Capital per Job: " + fD(pN(d.capitalInvestMin) / xfte), ML, Y); Y += 13; }
+        if (pN(d.clawbackPct) > 0 && xeff > 0) { pdf.text("Max Recoverable: " + fD(xeff * pN(d.clawbackPct) / 100) + " (" + d.clawbackPct + "% clawback)", ML, Y); Y += 13; }
+        Y += 6;
+      }
+
+      // ── PRODUCTIVITY PER ACRE ──
+      if (ac > 0) {
+        checkPage(100);
+        pdf.setTextColor(...cIndigo); pdf.setFontSize(11); pdf.setFont("helvetica", "bold");
+        pdf.text("FISCAL PRODUCTIVITY PER ACRE", ML, Y); Y += 16;
+        pdf.setTextColor(...cJet); pdf.setFontSize(9); pdf.setFont("helvetica", "normal");
+        const projVPA = pN(d.estimatedValue) / ac;
+        const jAcr = pN(d.jurisdictionAcreage), taxB = pN(d.existingTaxBase);
+        const jAvg = jAcr > 0 && taxB > 0 ? taxB / jAcr : 0;
+        if (pN(d.estimatedValue) > 0) { pdf.text("Assessed Value/Acre:  " + fD(projVPA) + (jAvg > 0 ? "  (city avg: " + fD(jAvg) + ")" : ""), ML, Y); Y += 13; }
+        if (rv > 0) { pdf.text("Revenue/Acre:  " + fD(rv / ac), ML, Y); Y += 13; }
+        if (co > 0) { pdf.text("Cost/Acre:  " + fD(co / ac), ML, Y); Y += 13; }
+        if (rv > 0 && co > 0) { pdf.text("Net Productivity/Acre:  " + fD(net / ac), ML, Y); Y += 13; }
+        if (eff > 0) { pdf.text("Incentive/Acre:  " + fD(eff / ac), ML, Y); Y += 13; }
+        if (pN(d.infraCostEst) > 0) { pdf.text("Infrastructure/Acre:  " + fD(pN(d.infraCostEst) / ac), ML, Y); Y += 13; }
+        if (pN(d.infraCostEst) > 0) { pdf.text("30-Yr Lifecycle/Acre:  " + fD(pN(d.infraCostEst) * 3.5 / ac), ML, Y); Y += 13; }
+        if (xfte > 0) { pdf.text("Jobs/Acre:  " + (xfte / ac).toFixed(1), ML, Y); Y += 13; }
+        if (jAvg > 0 && projVPA > 0) {
+          Y += 4;
+          pdf.setFont("helvetica", "bold");
+          pdf.setTextColor(...(projVPA >= jAvg ? cGreen : cRed));
+          pdf.text("Productivity Ratio: " + (projVPA / jAvg).toFixed(2) + "x city average", ML, Y);
+          Y += 13;
+        }
+        Y += 6;
+      }
+
+      // ── INFRASTRUCTURE CAPACITY ──
+      const wCapV = pN(d.waterCapacityGPD), sCapV = pN(d.sewerCapacityGPD);
+      if (wCapV > 0 || sCapV > 0) {
+        checkPage(70);
+        pdf.setTextColor(...cIndigo); pdf.setFontSize(11); pdf.setFont("helvetica", "bold");
+        pdf.text("INFRASTRUCTURE CAPACITY", ML, Y); Y += 16;
+        pdf.setTextColor(...cJet); pdf.setFontSize(9); pdf.setFont("helvetica", "normal");
+        if (wCapV > 0) {
+          const wPost = ((pN(d.waterCurrentGPD) + pN(d.waterDemandGPD)) / wCapV * 100).toFixed(0);
+          pdf.text("Water: " + wPost + "% utilization post-project (capacity: " + (wCapV / 1000).toFixed(0) + "k GPD)", ML, Y); Y += 13;
+        }
+        if (sCapV > 0) {
+          const sPost = ((pN(d.sewerCurrentGPD) + pN(d.sewerDemandGPD)) / sCapV * 100).toFixed(0);
+          pdf.text("Sewer: " + sPost + "% utilization post-project (capacity: " + (sCapV / 1000).toFixed(0) + "k GPD)", ML, Y); Y += 13;
+        }
+        if (pN(d.powerAvailableMW) > 0 && pN(d.powerDemandMW) > 0) {
+          pdf.text("Power: " + d.powerDemandMW + " MW demand / " + d.powerAvailableMW + " MW available (" + ((pN(d.powerDemandMW) / pN(d.powerAvailableMW)) * 100).toFixed(0) + "% of capacity)", ML, Y); Y += 13;
+        }
+        Y += 6;
+      }
+
+      // ── RED FLAGS ──
+      if (flags.length > 0) {
+        checkPage(30 + flags.length * 14);
+        pdf.setFillColor(cRed[0], cRed[1], cRed[2], 0.04);
+        const flagH = 22 + flags.length * 14;
+        pdf.roundedRect(ML, Y, CW, flagH, 3, 3, "F");
+        pdf.setDrawColor(...cRed); pdf.setLineWidth(0.5);
+        pdf.roundedRect(ML, Y, CW, flagH, 3, 3, "S");
+        Y += 6;
+        pdf.setTextColor(...cRed); pdf.setFontSize(8); pdf.setFont("helvetica", "bold");
+        pdf.text("RED FLAGS (" + flags.length + ")", ML + 10, Y + 8); Y += 16;
+        pdf.setFontSize(9); pdf.setFont("helvetica", "normal");
+        flags.forEach(f => {
+          const lines = pdf.splitTextToSize(f, CW - 30);
+          lines.forEach(line => { pdf.text("•  " + line, ML + 10, Y); Y += 12; });
+        });
+        Y += 10;
+      }
+
+      // ── STRENGTHS ──
+      if (strengths.length > 0) {
+        checkPage(30 + strengths.length * 14);
+        pdf.setFillColor(cGreen[0], cGreen[1], cGreen[2], 0.04);
+        const strH = 22 + strengths.length * 14;
+        pdf.roundedRect(ML, Y, CW, strH, 3, 3, "F");
+        pdf.setDrawColor(...cGreen); pdf.setLineWidth(0.5);
+        pdf.roundedRect(ML, Y, CW, strH, 3, 3, "S");
+        Y += 6;
+        pdf.setTextColor(...cGreen); pdf.setFontSize(8); pdf.setFont("helvetica", "bold");
+        pdf.text("STRENGTHS (" + strengths.length + ")", ML + 10, Y + 8); Y += 16;
+        pdf.setFontSize(9); pdf.setFont("helvetica", "normal");
+        strengths.forEach(s => {
+          const lines = pdf.splitTextToSize(s, CW - 30);
+          lines.forEach(line => { pdf.text("✓  " + line, ML + 10, Y); Y += 12; });
+        });
+        Y += 10;
+      }
+
+      // ── AI DISCLAIMER ──
+      if (aiCount > 0) {
+        checkPage(30);
+        pdf.setFontSize(8); pdf.setTextColor(180, 120, 10); pdf.setFont("helvetica", "italic");
+        pdf.text("Note: " + aiCount + " fields were AI-extracted drafts. Verify all values against source documents before relying on scores.", ML, Y);
+        Y += 16;
+      }
+
+      // ── METHODOLOGY FOOTER ──
+      checkPage(80);
+      pdf.setFillColor(...cSand);
+      pdf.roundedRect(ML, Y, CW, 64, 3, 3, "F");
+      pdf.setTextColor(...cGray); pdf.setFontSize(7); pdf.setFont("helvetica", "bold");
+      pdf.text("METHODOLOGY", ML + 10, Y + 14);
+      pdf.setFont("helvetica", "normal");
+      const methText = "Fiscal productivity: Urban3 value-per-acre methodology. Infrastructure: GFOA lifecycle cost and capital planning best practices. Market evidence: GFOA but-for analysis with empirical inputs. Performance: GFOA agreement negotiation and monitoring standards. References: GFOA, ICMA, APA, NLC, Lincoln Institute, TML, NCTCOG. Texas: Ch. 312, Ch. 380/381, TCEQ.";
+      const methLines = pdf.splitTextToSize(methText, CW - 20);
+      methLines.forEach((line, i) => { pdf.text(line, ML + 10, Y + 26 + i * 10); });
+      Y += 64 + 10;
+
+      // ── PAGE FOOTER ──
+      const pageCount = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFillColor(...cIndigo);
+        pdf.rect(0, H - 28, W, 28, "F");
+        pdf.setTextColor(255, 255, 255); pdf.setFontSize(7); pdf.setFont("helvetica", "normal");
+        pdf.text("The Citizen  ·  thecitizentx.com  ·  GFOA Best Practices  ·  Urban3 Value/Acre Methodology  ·  Not legal or financial advice.", W / 2, H - 12, { align: "center" });
+        pdf.text("Page " + i + " of " + pageCount, W - MR, H - 12, { align: "right" });
+      }
+
+      const blob = pdf.output("blob");
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (err) {
+      console.error("PDF export error:", err);
+      alert("PDF export failed: " + err.message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return <div>
+    <SH icon="📄" title="Full Evaluation Report" />
+    <div style={{ textAlign: "center", padding: "24px 20px", background: gc + "0C", border: `2px solid ${gc}30`, borderRadius: 8, marginBottom: 24 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: B.gray, letterSpacing: "0.08em", textTransform: "uppercase" }}>Overall</div>
+      <div style={{ fontSize: 42, fontWeight: 900, color: gc }}>{grade}</div>
+      <div style={{ fontSize: 18, fontWeight: 600, color: B.jet }}>{t.score} / {t.max}</div>
+      {d.projectName && <div style={{ fontSize: 13, color: B.gray, marginTop: 4 }}>{d.projectName}{d.developer ? " — " + d.developer : ""}{ac > 0 ? ` · ${d.acreage} acres` : ""}</div>}
+    </div>
+    {(eff > 0 || rv > 0) && <div style={{ display: "flex", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
+      {eff > 0 && <CB label="Public $" value={fD(eff)} color={B.poppy} />}
+      {rv > 0 && co > 0 && <CB label="Net/yr" value={(net >= 0 ? "+" : "") + fD(net)} color={net >= 0 ? B.green : B.red} />}
+      {ac > 0 && rv > 0 && co > 0 && <CB label="Net/Acre" value={fD(net / ac)} color={net >= 0 ? B.green : B.red} />}
+      {net > 0 && eff > 0 && <CB label="10-Yr Net" value={fD(net * 10 - eff)} color={(net * 10 - eff) >= 0 ? B.green : B.red} />}
+    </div>}
+    <div style={{ marginBottom: 24 }}>
+      <SBar label="Incentive Structure" score={scores.incentive.score} max={scores.incentive.max} />
+      <SBar label="Fiscal Impact" score={scores.fiscal.score} max={scores.fiscal.max} />
+      <SBar label="Market Evidence" score={scores.market.score} max={scores.market.max} />
+      <SBar label="Infrastructure Capacity" score={scores.infrastructure.score} max={scores.infrastructure.max} />
+      <SBar label="Performance & Accountability" score={scores.performance.score} max={scores.performance.max} />
+    </div>
+    {flags.length > 0 && <div style={{ background: B.red + "08", border: `1px solid ${B.red}25`, borderRadius: 6, padding: "14px 18px", marginBottom: 16 }}><div style={{ fontSize: 12, fontWeight: 700, color: B.red, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Red Flags ({flags.length})</div>{flags.map((f, i) => <div key={i} style={{ fontSize: 13, color: B.jet, padding: "4px 0", display: "flex", gap: 8 }}><span style={{ color: B.red }}>⚠</span>{f}</div>)}</div>}
+    {strengths.length > 0 && <div style={{ background: B.green + "08", border: `1px solid ${B.green}25`, borderRadius: 6, padding: "14px 18px", marginBottom: 16 }}><div style={{ fontSize: 12, fontWeight: 700, color: B.green, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Strengths ({strengths.length})</div>{strengths.map((s, i) => <div key={i} style={{ fontSize: 13, color: B.jet, padding: "4px 0", display: "flex", gap: 8 }}><span style={{ color: B.green }}>✓</span>{s}</div>)}</div>}
+    <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+      <button onClick={handleExport} disabled={exporting} style={{ padding: "10px 24px", background: B.indigo, color: "#fff", border: "none", borderRadius: 4, fontWeight: 700, cursor: exporting ? "wait" : "pointer", fontFamily: "inherit", opacity: exporting ? 0.7 : 1 }}>{exporting ? "⏳ Generating PDF..." : "Export Report (PDF)"}</button>
+      <button onClick={onReset} style={{ padding: "10px 24px", background: "#fff", border: "1px solid " + B.grayL, borderRadius: 4, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>New Evaluation</button>
+    </div>
+    <div style={{ marginTop: 28, padding: "16px 18px", background: B.sand, borderRadius: 6, fontSize: 12, color: B.gray, lineHeight: 1.5 }}>
+      <strong style={{ color: B.indigo }}>Methodology</strong>
+      <p style={{ margin: "6px 0 0" }}>Fiscal productivity: Urban3 value-per-acre methodology. Infrastructure: GFOA lifecycle cost and capital planning best practices. Market evidence: GFOA but-for analysis framework with empirical inputs replacing subjective assessment. Performance: GFOA agreement negotiation and monitoring standards.</p>
+      <p style={{ margin: "6px 0 0" }}>References: GFOA, ICMA, APA, NLC, Lincoln Institute, TML, NCTCOG. Texas: Ch. 312, Ch. 380/381, TCEQ utility data.</p>
+      <p style={{ margin: "6px 0 0", fontStyle: "italic" }}>Public resource of The Citizen (thecitizentx.com). Not legal or financial advice.</p>
+    </div>
+  </div>;
+}
+
+/* ═══ MAIN ═══ */
+function App() {
+  const [data, setData] = useState({ ...D }); const [sec, setSec] = useState("overview");
+  const nav = useCallback((id) => { setSec(id); window.scrollTo(0, 0); }, []);
+  const [showImport, setShowImport] = useState(false); const [aiFields, setAiFields] = useState(new Set());
+  const s = useCallback((k, v) => { setData(p => ({ ...p, [k]: v })); setAiFields(p => { const n = new Set(p); n.delete(k); return n; }); }, []);
+  const reset = useCallback(() => { if (confirm("Clear all entries and start a new evaluation?")) { setData({ ...D }); nav("overview"); setAiFields(new Set()); setShowImport(false); } }, [nav]);
+  const applyAI = useCallback((fields) => {
+    const nAi = new Set();
+    setData(p => { const n = { ...p }; Object.entries(fields).forEach(([k, v]) => { if (!(k in D)) return; if (k === "incentiveTypes" && Array.isArray(v) && v.length > 0) { n[k] = v; nAi.add(k); } else if (v && String(v).trim() !== "" && String(v) !== "0" && (!p[k] || String(p[k]).trim() === "")) { n[k] = String(v); nAi.add(k); } }); return n; });
+    setAiFields(p => new Set([...p, ...nAi])); setShowImport(false);
+  }, []);
+  const scores = useMemo(() => computeScores(data), [data]);
+  const ci = SECS.findIndex(x => x.id === sec);
+  const sMap = {
+    overview: <OverviewSec d={data} s={s} ai={aiFields} />,
+    incentives: <IncentiveSec d={data} s={s} scores={scores} ai={aiFields} />,
+    market: <MarketSec d={data} s={s} scores={scores} ai={aiFields} />,
+    infracap: <InfraCapSec d={data} s={s} scores={scores} ai={aiFields} />,
+    performance: <PerfSec d={data} s={s} scores={scores} ai={aiFields} />,
+    productivity: <ProductivitySec d={data} scores={scores} />,
+    report: <ReportSec d={data} scores={scores} onReset={reset} aiCount={aiFields.size} />,
+  };
+  const completion = useMemo(() => {
+    let f = 0, t = 0; const ck = v => { t++; if (v && (Array.isArray(v) ? v.length > 0 : String(v).trim() !== "")) f++; };
+    ck(data.projectName); ck(data.acreage); ck(data.estimatedValue); ck(data.cityTaxRate);
+    ck(data.incentiveTypes); ck(data.abatementPct);
+    ck(data.projectedRevAnnual); ck(data.projectedCostAnnual);
+    ck(data.submarketVacancy); ck(data.hasFeasibilityStudy);
+    ck(data.waterCapacityGPD); ck(data.waterCurrentGPD); ck(data.waterDemandGPD);
+    ck(data.infraCostEst); ck(data.developerInfraContrib);
+    ck(data.hasClawback); ck(data.clawbackPct); ck(data.reportingFrequency);
+    ck(data.jobsFTE); ck(data.wageAnnual); ck(data.areaMedianWage); ck(data.capitalInvestMin);
+    ck(data.milestoneCount); ck(data.completionDeadlineYrs);
+    return t > 0 ? Math.round((f / t) * 100) : 0;
+  }, [data]);
+
+  return (
+    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: B.offWhite, minHeight: "100vh", position: "relative" }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+      <img src={TOOLKIT_LOGO} alt="The Citizen Toolkit" style={{ position: "absolute", top: 12, right: 16, height: 52, zIndex: 10 }} />
+      <div style={{ background: B.indigo, color: "#fff", padding: "20px 24px" }}>
+        <div style={{ maxWidth: 920, margin: "0 auto" }}>
+          <h1 style={{ margin: 0, fontFamily: "'DM Serif Display', serif", fontSize: 26, fontWeight: 400, color: "#fff", paddingRight: 200 }}>Development Deal Evaluator</h1>
+          <p style={{ margin: "6px 0 0", fontSize: 13, opacity: 0.7 }}>Empirical analysis against GFOA best practices · Urban3 productivity methodology</p>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 12 }}>
+            <button onClick={() => setShowImport(!showImport)} style={{ padding: "8px 16px", background: showImport ? B.poppy : "rgba(255,255,255,0.15)", color: "#fff", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 4, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>📄 AI Import</button>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.5 }}>Done</div><div style={{ fontSize: 20, fontWeight: 800 }}>{completion}%</div><div style={{ height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 2, width: 60 }}><div style={{ height: "100%", width: completion + "%", background: completion >= 75 ? B.green : B.yellow, borderRadius: 2, transition: "width 0.3s" }} /></div></div>
+          </div>
+        </div>
+      </div>
+      <div style={{ background: "#fff", borderBottom: "1px solid " + B.grayL, overflowX: "auto" }}>
+        <div style={{ maxWidth: 920, margin: "0 auto", display: "flex" }}>
+          {SECS.map(x => <button key={x.id} onClick={() => nav(x.id)} style={{ padding: "10px 14px", fontSize: 12, fontWeight: sec === x.id ? 700 : 500, color: sec === x.id ? B.indigo : B.gray, background: "transparent", border: "none", cursor: "pointer", borderBottom: sec === x.id ? "2px solid " + B.poppy : "2px solid transparent", whiteSpace: "nowrap", fontFamily: "inherit" }}><span style={{ marginRight: 4 }}>{x.icon}</span>{x.label}</button>)}
+        </div>
+      </div>
+      <div style={{ maxWidth: 920, margin: "0 auto", padding: "24px 24px 60px" }}>
+        {showImport && <ImportPanel onApply={applyAI} onClose={() => setShowImport(false)} />}
+        {aiFields.size > 0 && !showImport && <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", background: B.amber + "10", border: `1px solid ${B.amber}25`, borderRadius: 6, marginBottom: 16, fontSize: 12, color: B.amber }}><span style={{ fontWeight: 700 }}>●</span> {aiFields.size} AI DRAFT fields — verify against source documents. <button onClick={() => setShowImport(true)} style={{ marginLeft: "auto", background: "none", border: "none", color: B.indigo, fontSize: 12, fontWeight: 600, cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>Import another</button></div>}
+        {sMap[sec]}
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 32, paddingTop: 20, borderTop: "1px solid " + B.grayL }}>
+          {ci > 0 ? <button onClick={() => nav(SECS[ci - 1].id)} style={{ padding: "10px 20px", background: "#fff", color: B.indigo, border: "1px solid " + B.indigo + "40", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{"← " + SECS[ci - 1].label}</button> : <div />}
+          {ci < SECS.length - 1 ? <button onClick={() => nav(SECS[ci + 1].id)} style={{ padding: "10px 20px", background: B.indigo, color: "#fff", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{SECS[ci + 1].label + " →"}</button> : <div />}
+        </div>
+      </div>
+      {/* References & Research Sources */}
+      <div style={{ maxWidth: 920, margin: "0 auto", padding: "0 24px 24px" }}>
+        <div style={{ background: B.sand, borderRadius: 8, padding: "20px 24px" }}>
+          <h3 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 800, color: B.indigo, letterSpacing: "0.04em", textTransform: "uppercase" }}>References & Research Sources</h3>
+          <p style={{ margin: "0 0 12px", fontSize: 12, color: B.gray, lineHeight: 1.4 }}>
+            Methodology, market research, and framework sources. These are not data lookup tools — they provide the analytical frameworks and industry reports that inform this evaluator's criteria.
+          </p>
+          {["Methodology", "Market Research", "Research"].map(cat => {
+            const items = REFERENCES.filter(r => r.category === cat);
+            if (items.length === 0) return null;
+            return <div key={cat} style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: B.indigo, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>{cat}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {items.map((r, i) => <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: B.jet, textDecoration: "none", padding: "4px 10px", borderRadius: 4, background: "#fff", border: `1px solid ${B.grayL}`, lineHeight: 1.3 }}>
+                  <span style={{ fontSize: 10, color: B.gray }}>↗</span> {r.label}
+                </a>)}
+              </div>
+            </div>;
+          })}
+        </div>
+      </div>
+      <div style={{ background: B.jet, color: "#fff", padding: "16px 24px", textAlign: "center", fontSize: 11, opacity: 0.7 }}>The Citizen · thecitizentx.com · GFOA Best Practices · Urban3 Value/Acre Methodology</div>
+    </div>
+  );
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
+
+</script>
+</body>
+</html>
